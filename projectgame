@@ -1,84 +1,126 @@
 import pygame
 import sys
-
-# Initiera Pygame
 pygame.init()
 
 # Skapa fönstret
 screen = pygame.display.set_mode((800, 600))
 pygame.display.set_caption("Pygame")
 
-# Färger
-white = (0, 0, 0)
-black = (255, 255, 255)
+#bakgrundsbild
+background_image = pygame.image.load("background.png")
+background_image = pygame.transform.scale(background_image, (800, 600))  
+
+# Färger 
+black = (0, 0, 0)
+white = (255, 255, 255)
 red = (255, 0, 0)
 
-# Cirkels position och fysikvariabler
+#Huvudkarakätär position 
 circle_x, circle_y = 400, 300
 circle_radius = 40
 circle_speed_x = 10
 circle_speed_y = 0
-gravity = 0.5
 jump_strength = -15
 on_ground = False
-doublejump = False  # Dubbelhopp variabel
+doublejump = False  
 
+gravity = 0.5 #gravition
+level = 1 # level
+
+#text
+font = pygame.font.Font(None, 74)
+small_font = pygame.font.Font(None, 36)
+
+startmenu = True
+
+def startmenu():
+    screen.fill(black)
+    title_text = font.render("Welcome to the Game!", True, white)
+    start_text = small_font.render("Press Enter to begin", True, white)
+    
+    # Placera texten på skärmen
+    screen.blit(title_text, (800 // 2 - title_text.get_width() // 2, 200))
+    screen.blit(start_text, (800 // 2 - start_text.get_width() // 2, 300))
+    
+    pygame.display.flip()
+    
+def enviroment(level): #funktion för level
+    title_text = font.render(f"level {level}", True, white)
+    screen.blit(title_text,(10,30))
+    
 # Huvudloop
 while True:
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            pygame.quit()
-            sys.exit()
-
-    # Tangenttryckningar
-    keys = pygame.key.get_pressed()
-
-    # Horisontell rörelse
-    if keys[pygame.K_LEFT]:
-        circle_x -= circle_speed_x
-    if keys[pygame.K_RIGHT]:
-        circle_x += circle_speed_x
-
-    # Hopp och dubbelhopp
-    if keys[pygame.K_UP] and on_ground:
-        circle_speed_y = jump_strength  # Starta första hoppet
-        on_ground = False
-        doublejump = True  # Tillåt dubbelhopp
-
-    elif keys[pygame.K_UP] and doublejump and circle_y < 500:
-        circle_speed_y = jump_strength  # Starta dubbelhopp
-        doublejump = False  # Förhindra ytterligare hopp tills vi når marken
-    
-    if keys[pygame.K_DOWN] and on_ground == False:
-        gravity *= 1.5
-        damage = 1
-
-    # Gravitation och vertikal rörelse
-    circle_speed_y += gravity
-    circle_y += circle_speed_y
-
-    # Begränsa inom fönstret och kontrollera om cirkeln är på marken
-    circle_x = max(circle_radius, min(800 - circle_radius, circle_x))
-    if circle_y >= 600 - circle_radius:
-        circle_y = 600 - circle_radius
-        circle_speed_y = 0
-        on_ground = True
-        if gravity != 0.5:
-            gravity = 0.5
-            
-    
-        doublejump = False  # Återställ dubbelhopp när vi är på marken
-
-    # Uppdatera skärmen
-    screen.fill(black)
-    if gravity == 0.5:
-        pygame.draw.circle(screen, white, (int(circle_x), int(circle_y)), circle_radius)
+    if startmenu: #start meny
+        startmenu()
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+            elif event.type == pygame.KEYDOWN and event.key == pygame.K_RETURN:
+                startmenu = False  # Starta spelet
         
     else:
-        pygame.draw.line(screen,white, (int(circle_x),int(circle_y)), (int(circle_x),int(circle_y-100)) ,8)
-        pygame.draw.line(screen,white, (int(circle_x-20),int(circle_y)), (int(circle_x-30),int(circle_y-100)) ,8)
-        pygame.draw.line(screen,white, (int(circle_x+20),int(circle_y)), (int(circle_x+30),int(circle_y-100)) ,8)
-        pygame.draw.circle(screen, red, (int(circle_x), int(circle_y)), circle_radius)
+    
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+
+        # Tangenttryckningar
+        keys = pygame.key.get_pressed()
+
+        # Horisontell rörelse
+        if keys[pygame.K_LEFT]:
+            circle_x -= circle_speed_x
+        if keys[pygame.K_RIGHT]:
+            circle_x += circle_speed_x
+
+        # Hopp och dubbelhopp
+        if keys[pygame.K_UP] and on_ground:
+            circle_speed_y = jump_strength  # Starta första hoppet
+            on_ground = False
+            doublejump = True  # Tillåt dubbelhopp
+            
+        elif keys[pygame.K_UP] and doublejump and circle_y < 500:
+            circle_speed_y = jump_strength  # Starta dubbelhopp
+            doublejump = False  # Förhindra ytterligare hopp tills vi når marken
+            
+        #kraft
+        if keys[pygame.K_DOWN] and on_ground == False:
+            gravity *= 1.5
+            damage = 1
+
+        # Gravitation och vertikal rörelse
+        circle_speed_y += gravity
+        circle_y += circle_speed_y
+
+        # Begränsa inom fönstret och kontrollera om cirkeln är på marken
+        circle_x = max(circle_radius, min(800 - circle_radius, circle_x))
+        if circle_y >= 600 - circle_radius:
+            circle_y = 600 - circle_radius
+            circle_speed_y = 0
+            on_ground = True
+            if gravity != 0.5:
+                gravity = 0.5
+            doublejump = False  # Återställ dubbelhopp när vi är på marken
+            
+        if circle_x == 760 and circle_y == 560:
+            circle_x = 40
+            circle_y = 560
+            level+=1
+            
+        # Uppdatera skärmen
+        screen.blit(background_image, (0, 0))
+        if gravity == 0.5:
+            pygame.draw.circle(screen, black, (int(circle_x), int(circle_y)), circle_radius)
+            
+        else:
+            pygame.draw.line(screen,black, (int(circle_x),int(circle_y)), (int(circle_x),int(circle_y-100)) ,8)
+            pygame.draw.line(screen,black, (int(circle_x-20),int(circle_y)), (int(circle_x-30),int(circle_y-100)) ,8)
+            pygame.draw.line(screen,black, (int(circle_x+20),int(circle_y)), (int(circle_x+30),int(circle_y-100)) ,8)
+            pygame.draw.circle(screen, red, (int(circle_x), int(circle_y)), circle_radius)
+
+        enviroment(level) #level
         
-    pygame.display.flip()
-    pygame.time.delay(30)
+        pygame.display.flip()
+        pygame.time.delay(30)
