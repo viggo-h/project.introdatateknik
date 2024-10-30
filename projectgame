@@ -8,6 +8,9 @@ pygame.init()
 screen = pygame.display.set_mode((800, 600))
 pygame.display.set_caption("Pygame")
 
+background_image = pygame.image.load("background.png")
+background_image = pygame.transform.scale(background_image, (800, 600))  
+
 # Färger
 white = (0, 0, 0)
 black = (255, 255, 255)
@@ -70,7 +73,7 @@ while True:
         doublejump = False  # Återställ dubbelhopp när vi är på marken
 
     # Uppdatera skärmen
-    screen.fill(black)
+    screen.blit(background_image, (0, 0))
     if gravity == 0.5:
         pygame.draw.circle(screen, white, (int(circle_x), int(circle_y)), circle_radius)
         
