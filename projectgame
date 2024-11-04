@@ -1,3 +1,4 @@
+
 import pygame
 import sys
 pygame.init()
@@ -9,6 +10,10 @@ pygame.display.set_caption("Pygame")
 # Bakgrundsbild
 background_image = pygame.image.load("background.png")
 background_image = pygame.transform.scale(background_image, (800, 600))  
+
+#Bilder för hinder
+brick_wall = pygame.image.load("brick_wall.jpg")
+brick_wall = pygame.transform.scale(brick_wall, (100, 20))
 
 # Färger 
 black = (0, 0, 0)
@@ -150,7 +155,7 @@ while True:
         fiende_speed_x *= -1.2
 
     # Kontrollera kollision med fienden
-    fiende_kollision = (circle_x + 30 >= fiende_x and circle_x - 30 <= fiende_x + fiende_storlek and on_ground)
+    fiende_kollision = (circle_x + 30 >= fiende_x and circle_x - 30 <= fiende_x + fiende_storlek and circle_y+circle_radius >= 560 )
     if fiende_kollision:       
         fiende_speed_x *= -1
         if not tagen_skada:
@@ -190,6 +195,31 @@ while True:
     environment(level)
     #Life counter
     lives(hearts)   
+
+
+    #Skapar ett hinder och ger den en hitbox
+    obstacle1 = pygame.Rect(200, 480, 100, 15) #en rektangel från (200, 480) med bredd 100 och höjd 20
+    pygame.draw.rect(screen, red, obstacle1)
+    screen.blit(brick_wall, (obstacle1.x, obstacle1.y))
+
+    #Ger en hitbox till "spelaren"
+    circle_rect = pygame.Rect(circle_x - circle_radius, circle_y - circle_radius, circle_radius * 2, circle_radius * 2)
+        
+        
+    collide = circle_rect.colliderect(obstacle1)
+       
+    if collide:
+          if circle_y + circle_radius <= obstacle1.top +11 :  # Om cirkeln är ovanför hinderet
+            on_ground = True
+            circle_speed_y = 0  # Stopp för vertikal rörelse när cirkeln är på hinderet
+            circle_y = obstacle1.top - circle_radius  # Justera position så att cirkeln står exakt på toppen av hinderet
+                
+          else:
+        # Om karaktären träffar sidan eller undersidan av hinderet, faller den igen
+            on_ground = False
+            circle_speed_y = max(circle_speed_y, 5) 
+
+
 
     pygame.display.flip()
     pygame.time.delay(30)
