@@ -26,7 +26,8 @@ circle_x, circle_y = 40, 300
 circle_radius = 40
 circle_speed_x = 10
 circle_speed_y = 0
-jump_strength = -15
+jump_strength = -10
+gravity = 0.5
 on_ground = False
 doublejump = False  
 
@@ -43,16 +44,14 @@ fiende_speed_x = 5
 spik_x, spik_y = 400, 160
 spik_x_storlek = 20
 
-
-gravity = 0.5  # Gravitation
-level = 1  # Level
-
 # Text
 font = pygame.font.Font(None, 74)
 small_font = pygame.font.Font(None, 36)
 
+level = 1  # Level
 startmenu = True
 gameover = False
+onplatform = False
 
 def show_start_menu(): #startskärm
     screen.fill(black)
@@ -98,13 +97,13 @@ while True:
             elif event.key == pygame.K_RETURN:
                 pygame.quit()
                 sys.exit()
-
     if startmenu:
         show_start_menu()
         continue
     elif gameover:
         show_gameover()
-        continue  # 
+        continue  
+
 
     # Tangenttryckningar
     keys = pygame.key.get_pressed()
@@ -126,17 +125,18 @@ while True:
         
     # snabbt ner
     if keys[pygame.K_DOWN] and on_ground == False:
-            gravity *= 1.5
-            damage = 1
+        gravity *= 1.5
+    else:
+        gravity = 0.5
     
-
     # Gravitation och vertikal rörelse
-    circle_speed_y += gravity
-    circle_y += circle_speed_y
+    if onplatform == False:
+        circle_speed_y += gravity
+        circle_y += circle_speed_y
 
     # Begränsar cirklerns rörelse
     circle_x = max(circle_radius, min(800 - circle_radius, circle_x))
-    if circle_y >= 600 - circle_radius:
+    if circle_y >= 600 - circle_radius: #om cirklen är innanför
         circle_y = 600 - circle_radius
         circle_speed_y = 0
         on_ground = True
@@ -152,22 +152,20 @@ while True:
     # Fiende rörelse i x led
     fiende_x += fiende_speed_x
     if fiende_x >= 750 or fiende_x <= 0:
-        fiende_speed_x *= -1.2
+        fiende_speed_x *= -1.1 #blir snabbare
 
     # Kontrollera kollision med fienden
     fiende_kollision = (circle_x + 30 >= fiende_x and circle_x - 30 <= fiende_x + fiende_storlek and circle_y+circle_radius >= 560 )
-    if fiende_kollision:       
+    if fiende_kollision and not tagen_skada:       
         fiende_speed_x *= -1
-        if not tagen_skada:
-            hearts -= 1
-            tagen_skada = True
-            if hearts == 0:
-                gameover = True     
+        hearts -= 1
+        tagen_skada = True
+        if hearts == 0:
+            gameover = True     
 
     #Kollision och damage av spiken
     spik_kollision = (circle_x + 30 >= spik_x and circle_x -30 <= spik_x + spik_x_storlek and circle_y <= spik_y + 20)
-    if spik_kollision and not fiende_kollision:    
-        if not tagen_skada: 
+    if spik_kollision and not fiende_kollision and not tagen_skada:    
             hearts-=1    
             tagen_skada = True 
             if hearts == 0:
@@ -192,34 +190,51 @@ while True:
     #fiende 
     pygame.draw.rect(screen, red, (fiende_x, fiende_y, fiende_storlek, fiende_storlek))
     #level
+    
     environment(level)
     #Life counter
     lives(hearts)   
 
 
     #Skapar ett hinder och ger den en hitbox
-    obstacle1 = pygame.Rect(200, 480, 100, 15) #en rektangel från (200, 480) med bredd 100 och höjd 20
-    pygame.draw.rect(screen, red, obstacle1)
-    screen.blit(brick_wall, (obstacle1.x, obstacle1.y))
+    obstacles = []
+    
+    if level == 1: #level 1 hinder
+        obstacle1 = pygame.Rect(100, 450, 200, 30)
+        obstacle2 = pygame.Rect(400, 350, 80, 250)
+        obstacles =  [obstacle1, obstacle2]
 
+    for obstacle in obstacles:
+        pygame.draw.rect(screen, black, obstacle)
+    
     #Ger en hitbox till "spelaren"
     circle_rect = pygame.Rect(circle_x - circle_radius, circle_y - circle_radius, circle_radius * 2, circle_radius * 2)
         
-        
-    collide = circle_rect.colliderect(obstacle1)
-       
-    if collide:
-          if circle_y + circle_radius <= obstacle1.top +11 :  # Om cirkeln är ovanför hinderet
-            on_ground = True
-            circle_speed_y = 0  # Stopp för vertikal rörelse när cirkeln är på hinderet
-            circle_y = obstacle1.top - circle_radius  # Justera position så att cirkeln står exakt på toppen av hinderet
+    for obstacle in obstacles: #ger möjdlighet med olika hinder varje nivå
+        if circle_rect.colliderect(obstacle):
+            
+            # över platformen
+            if circle_y + circle_radius > obstacle.top and circle_y < obstacle.top:
+                circle_y = obstacle.top - circle_radius
+                circle_speed_y = 0
+                doublejump = False
+                onplatform = True
+                on_ground = True
                 
-          else:
-        # Om karaktären träffar sidan eller undersidan av hinderet, faller den igen
-            on_ground = False
-            circle_speed_y = max(circle_speed_y, 5) 
+            # vänster om platform
+            elif circle_x + circle_radius > obstacle.left and circle_x < obstacle.left:
+                circle_x = obstacle.left - circle_radius   
+            #höger om platform
+            elif circle_x - circle_radius < obstacle.right and circle_x > obstacle.right:
+                circle_x = obstacle.right + circle_radius
+            #under
+            elif circle_y - circle_radius < obstacle.bottom and circle_y > obstacle.bottom:
+                circle_y = obstacle.bottom + circle_radius
+                circle_speed_y = max(circle_speed_y, 5)  
+        else:
+            onplatform = False
 
-
+            
 
     pygame.display.flip()
     pygame.time.delay(30)
