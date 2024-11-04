@@ -14,6 +14,7 @@ background_image = pygame.transform.scale(background_image, (800, 600))
 black = (0, 0, 0)
 white = (255, 255, 255)
 red = (255, 0, 0)
+silver =(192, 192, 192)
 
 # Huvudkaraktär position 
 circle_x, circle_y = 40, 300
@@ -24,10 +25,19 @@ jump_strength = -15
 on_ground = False
 doublejump = False  
 
+#Liv och skada
+hearts = 3
+tagen_skada = False
+
 # Fiende 
 fiende_x, fiende_y = 400, 530
 fiende_storlek = 80
 fiende_speed_x = 5
+
+#Spik 1
+spik_x, spik_y = 400, 160
+spik_x_storlek = 20
+
 
 gravity = 0.5  # Gravitation
 level = 1  # Level
@@ -59,6 +69,11 @@ def environment(level):#level system
     title_text = font.render(f"Level {level}", True, white)
     screen.blit(title_text, (10, 30))
 
+
+def lives(hearts):   #Life counter and damage calculater
+        life_text = small_font.render(f"Lives {hearts}", True, white)
+        screen.blit(life_text, (700,30))
+
 # Huvudloop
 while True:
     for event in pygame.event.get():
@@ -73,6 +88,7 @@ while True:
                 fiende_x, fiende_y = 400, 530
                 fiende_speed_x = 5
                 level = 1
+                hearts = 3
                 gameover = False
             elif event.key == pygame.K_RETURN:
                 pygame.quit()
@@ -80,7 +96,7 @@ while True:
 
     if startmenu:
         show_start_menu()
-
+        continue
     elif gameover:
         show_gameover()
         continue  # 
@@ -134,11 +150,33 @@ while True:
         fiende_speed_x *= -1.2
 
     # Kontrollera kollision med fienden
-    if (circle_x + 10 >= fiende_x and circle_x - 10 <= fiende_x + fiende_storlek and on_ground):
-        gameover = True
+    fiende_kollision = (circle_x + 30 >= fiende_x and circle_x - 30 <= fiende_x + fiende_storlek and on_ground)
+    if fiende_kollision:       
+        fiende_speed_x *= -1
+        if not tagen_skada:
+            hearts -= 1
+            tagen_skada = True
+            if hearts == 0:
+                gameover = True     
 
-    # Uppdatera skärmen
+    #Kollision och damage av spiken
+    spik_kollision = (circle_x + 30 >= spik_x and circle_x -30 <= spik_x + spik_x_storlek and circle_y <= spik_y + 20)
+    if spik_kollision and not fiende_kollision:    
+        if not tagen_skada: 
+            hearts-=1    
+            tagen_skada = True 
+            if hearts == 0:
+                gameover = True
+
+    if not (fiende_kollision or spik_kollision):
+        tagen_skada = False 
+        
+
+    #Uppdatera skärmen
     screen.blit(background_image, (0, 0))
+    #Rita spikar
+    pygame.draw.polygon(screen, (silver),((430,0),(370,0),(400,160)))
+
     if gravity == 0.5:
         pygame.draw.circle(screen, black, (int(circle_x), int(circle_y)), circle_radius)
     else: #extra efffekter om man gör attack ner
@@ -150,6 +188,8 @@ while True:
     pygame.draw.rect(screen, red, (fiende_x, fiende_y, fiende_storlek, fiende_storlek))
     #level
     environment(level)
+    #Life counter
+    lives(hearts)   
 
     pygame.display.flip()
     pygame.time.delay(30)
