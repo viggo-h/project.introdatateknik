@@ -1,0 +1,61 @@
+import pygame
+
+import random
+
+boss_width = 200
+boss_height = 200
+boss_hitpoints = 3
+boss_x, boss_y = random.randint(350,600) , 300
+boss_speed_x = -3.5       #Måste updatera/köra filen för att ändringarna ska ske
+boss_speed_y = random.choice([-3,-2,2,3])
+
+
+
+boss = pygame.image.load("boss.PNG")
+DVD = pygame.image.load("DVD.PNG")
+arm = pygame.image.load("arm.JPG")   
+
+# Funktion för att rita bossen
+def spawn_boss(screen):
+    if boss is not None:
+        scaled_arm = pygame.transform.scale(arm,(50,50))
+        scaled_boss = pygame.transform.scale(boss, (boss_width, boss_height))
+        screen.blit(scaled_boss, (boss_x, boss_y))
+        screen.blit(scaled_arm, (boss_x,boss_y))
+
+def boss_movment():
+    global boss_x,boss_y, boss_speed_x, boss_speed_y
+    boss_x += boss_speed_x
+    boss_y += boss_speed_y
+    if boss_x <=0 or boss_x >= 800-boss_width:
+         boss_speed_x *=-1
+    if boss_y > 650-boss_height or boss_y < 150-boss_height:
+        boss_speed_y *=-1
+
+def boss_collaterate(circle_x, circle_y,):
+    global boss_x, boss_y, boss_speed_x
+    if boss_x <= circle_x <= boss_x + boss_width    and   boss_y <= circle_y <= boss_y + boss_height:
+        return True
+    return False
+
+
+def boss_attack(screen):
+    scaled_DVD = pygame.transform.scale(DVD,(30,30))
+    screen.blit(scaled_DVD,(boss_x,boss_y))
+
+    
+
+
+        
+        
+        
+        
+
+
+       
+
+
+
+
+    
+
