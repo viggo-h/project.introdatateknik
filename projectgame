@@ -118,6 +118,7 @@ while True:
         continue
     elif gameover:
         level_start = False
+        circle_speed_x = 10
         show_gameover()
         continue  
 
@@ -271,28 +272,32 @@ while True:
             if fiende_kollision and not tagen_skada:       
                 fiende_speed_x *= -1
                 hearts -= 1
-                circle_x, circle_y = 100, 410
+                circle_speed_x, circle_speed_y = 0,0
+                circle_x, circle_y = 100, 395
                 tagen_skada = True
                 kollision = True
                 if hearts == 0:
                     gameover = True  
             if spik_kollision_NH and not tagen_skada:    
                 hearts-=1   
-                circle_x, circle_y = 100, 410
+                circle_speed_x, circle_speed_y = 0,0
+                circle_x, circle_y = 100, 395
                 tagen_skada = True 
                 kollision = True
                 if hearts == 0:
                     gameover = True
             if spik_kollision and not tagen_skada:    
                 hearts-=1   
-                circle_x, circle_y = 100, 410
+                circle_speed_x, circle_speed_y = 0,0
+                circle_x, circle_y = 100, 395
                 tagen_skada = True 
                 kollision = True
                 if hearts == 0:
                     gameover = True     
             if spik_kollision_grop and not tagen_skada: 
                 hearts-=1
-                circle_x, circle_y = 100, 410
+                circle_speed_x, circle_speed_y = 0,0
+                circle_x, circle_y = 100, 395
                 tagen_skada = True
                 kollision = True
                 if hearts == 0:
@@ -300,6 +305,7 @@ while True:
         if not (fiende_kollision or (spik_kollision_NH or (spik_kollision or spik_kollision_grop))):
             tagen_skada = False 
             kollision = False
+            circle_speed_x = 10
         pygame.draw.polygon(screen, (red), ((740,500), (800,500), (770,415)))  #Spiken nere i höger
         pygame.draw.polygon(screen, (red), ((440,340), (500,340), (470,270)))  #Vänstra gropspiken
         pygame.draw.polygon(screen, (red), ((500,340), (560,340), (530,270)))  #mittersta gropspiken
