@@ -150,29 +150,37 @@ while True:
         
     # Uppdatera level 
     if level == 1 and circle_x == 760 and circle_y == 560: ##level 1
-        circle_x = 40
+        circle_x = 0
         circle_y = 560
+        fiende_x = 150
+        fiende_y = 520
         level += 1
     
+    if level == 2:
+        fiende_speed_x = 10
+
     # Fiende rörelse i x led
     
     fiende_x += fiende_speed_x
-    if fiende_x >= 750 or fiende_x <= 0:
-        fiende_speed_x *= -1 #blir snabbare
+    if level == 1 and fiende_x >= 750 or fiende_x <= 0:
+        fiende_speed_x *= -1 
+    if level == 2 and fiende_x >= 720:
+        fiende_x = 150
     
     # Kontrollera kollision med fienden
-    fiende_kollision = (circle_x + 30 >= fiende_x and circle_x - 30 <= fiende_x + fiende_storlek and circle_y +circle_radius >= 560)
-    if fiende_kollision and not tagen_skada and on_ground:      
+    fiende_kollision = (circle_x + 30 >= fiende_x and circle_x - 30 <= fiende_x + fiende_storlek and circle_y + circle_radius >= 560)
+    if fiende_kollision and not on_ground:
+        fiende_x = -100
+        fiende_y = -100
+        fiende_speed_x = 0
+        tagen_skada = True
+    if fiende_kollision and on_ground and not tagen_skada:
         fiende_speed_x *= -1
         hearts -= 1
-        tagen_skada = True
-    if fiende_kollision and not on_ground:
-        fiende_x = 0
-        fiende_y = 0
-        fiende_speed_x = 0
         if hearts == 0:
             gameover = True     
-
+        tagen_skada = True
+    
     #Kollision och damage av spiken
     spik_kollision = (circle_x + 30 >= spik_x and circle_x -30 <= spik_x + spik_x_storlek and circle_y <= spik_y + 20)
     if spik_kollision and not fiende_kollision and not tagen_skada:    
@@ -260,4 +268,5 @@ while True:
 
     pygame.display.flip()
     pygame.time.delay(25)
+
 
