@@ -1,3 +1,4 @@
+
 import pygame
 import sys
 pygame.init()
@@ -263,7 +264,7 @@ while True:
         obstacles = [ob1,ob2,ob3,ob4,ob5,ob6,ob7,ob8,ob9,ob10,ob11,ob12,ob13,ob14,ob15]
         #Kontakt och skada med spikar och fienden för level två
         fiende_kollision = (circle_x + 30 >= fiende_x and circle_x - 30 <= fiende_x + fiende_storlek and circle_y+circle_radius >= 560 )   
-        spik_kollision_NH = (circle_x + 30 >= spik_NHX and circle_x -30 <= spik_NHX + spik_NHsize and circle_y >= spik_NHY + 20 and circle_y <= spik_NHY - 20)
+        spik_kollision_NH = (circle_x + 30 >= spik_NHX and circle_x -30 <= spik_NHX + spik_NHsize and circle_y >= spik_NHY - 20 and circle_y <= spik_NHY + 90)
         spik_kollision = (circle_x + 30 >= spik_x and circle_x -30 <= spik_x + spik_x_storlek and circle_y <= spik_y + 20)
         spik_kollision_grop = (circle_x + 30 >= spik_gropX and circle_x -30 <= spik_gropX + spik_gropSize and circle_y <= spik_gropY + 5 and circle_y >= spik_gropY -5)
         if kollision == False:   
