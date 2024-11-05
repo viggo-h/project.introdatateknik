@@ -12,18 +12,13 @@ background_image = pygame.transform.scale(background_image, (800, 600))
 
 #Bilder för hinder
 brick_wall = pygame.image.load("brick_wall.jpg")
-brick_wall = pygame.transform.scale(brick_wall, (100, 20))
+brick_wall = pygame.transform.scale(brick_wall, (100, 40))
 stone = pygame.image.load("stone.PNG")
 stone = pygame.transform.scale(stone, (10,10))
 
 #Attribut för boss
 boss = pygame.image.load("boss.PNG")
 boss = pygame.transform.scale(boss, (300,300))
-
-
-
-
-
 
 
 # Färger 
@@ -47,19 +42,21 @@ doublejump = False
 #Liv och skada
 hearts = 3
 tagen_skada = False
+kollision = False
 
-fiende_x, fiende_y = 400, 530
+fiende_x, fiende_y = 300, 520
 fiende_storlek = 80
 fiende_speed_x = -5 
+fiende_image = pygame.image.load("Thwomp.gif")
+fiende_image = pygame.transform.scale(fiende_image, (80, 80))  
 
 #vinna grejer
-cube_x, cube_y = 760, 560
-cube_size = 40  
+cube_x, cube_y = 720, 520
+cube_size = 60  
+cube_image = pygame.image.load("goldapple.gif")
+cube_image = pygame.transform.scale(cube_image, (cube_size, cube_size))  
 
-#Spik 1
-spik_x, spik_y = 400, 160
-spik_x_storlek = 20
-
+ 
 # Text
 font = pygame.font.Font(None, 74)
 small_font = pygame.font.Font(None, 36)
@@ -183,37 +180,9 @@ while True:
         fiende_x = -50
         fiende_speed_x = 15
     
-    # Kontrollera kollision med fienden
-    fiende_kollision = (circle_x + 30 >= fiende_x and circle_x - 30 <= fiende_x + fiende_storlek and circle_y + circle_radius >= 560)
-    if fiende_kollision and not on_ground:
-        fiende_x = -100
-        fiende_y = -100
-        fiende_speed_x = 0
-        tagen_skada = True
-    if fiende_kollision and on_ground and not tagen_skada:
-        fiende_speed_x *= -1
-        hearts -= 1
-        if hearts == 0:
-            gameover = True     
-        tagen_skada = True
-    
-    #Kollision och damage av spiken
-    spik_kollision = (circle_x + 30 >= spik_x and circle_x -30 <= spik_x + spik_x_storlek and circle_y <= spik_y + 20)
-    if spik_kollision and not fiende_kollision and not tagen_skada:    
-            hearts-=1    
-            tagen_skada = True 
-            if hearts == 0:
-                gameover = True
-
-    if not (fiende_kollision or spik_kollision):
-        tagen_skada = False  
-
-
 
     #Uppdatera skärmen
     screen.blit(background_image, (0, 0))
-    #Rita spikar
-    pygame.draw.polygon(screen, (silver),((430,0),(370,0),(400,160)))
 
     if gravity == 0.5:
         pygame.draw.circle(screen, black, (int(circle_x), int(circle_y)), circle_radius)
@@ -226,7 +195,7 @@ while True:
         pygame.draw.line(screen,black, (int(circle_x+20),int(circle_y)), (int(circle_x+30),int(circle_y-100)) ,8)
         pygame.draw.circle(screen, red, (int(circle_x), int(circle_y)), circle_radius)
     #fiende 
-    pygame.draw.rect(screen, red, (fiende_x, fiende_y, fiende_storlek, fiende_storlek))
+    screen.blit(fiende_image,(fiende_x,fiende_y))
     #level
     
     environment(level)
@@ -234,13 +203,8 @@ while True:
     lives(hearts)   
     
     if level == 1: #level 1 goal
-        cube_x, cube_y = 760, 560
-        cube_size = 40  # Size of the cube
-        pygame.draw.rect(screen, yellow, (cube_x - cube_size // 2, cube_y - cube_size // 2, cube_size, cube_size))
-
-
-
-
+        cube_x, cube_y = 735, 535
+        screen.blit(cube_image,(cube_x,cube_y))
 
 ##Hinder
 
@@ -250,11 +214,25 @@ while True:
         obstacle1 = pygame.Rect(100, 450, 200, 40)
         obstacle2 = pygame.Rect(400, 350, 70, 250)
         obstacles =  [obstacle1, obstacle2]
-
         for obstacle in obstacles:
             for x in range(obstacle.x, obstacle.x + obstacle.width, brick_wall.get_width()):
                 for y in range(obstacle.y, obstacle.y + obstacle.height, brick_wall.get_height()):
                     screen.blit(brick_wall, (x, y))     
+        #Kontrollerar kontakt och skada med fienden
+        fiende_kollision = (circle_x + 30 >= fiende_x and circle_x - 30 <= fiende_x + fiende_storlek and circle_y+circle_radius >= 560 )
+        if fiende_kollision and not on_ground:
+            fiende_x = -100
+            fiende_y = -100
+            fiende_speed_x = 0
+            tagen_skada = True
+        if fiende_kollision and not tagen_skada:       
+            fiende_speed_x *= -1
+            hearts -= 1
+            tagen_skada = True
+            if hearts == 0:
+                gameover = True  
+        if not (fiende_kollision):
+                tagen_skada = False 
     
     
     #Level 2 saker
@@ -263,12 +241,10 @@ while True:
         fiende_x, fiende_y = 720, 530
         level_start = True
     if level == 2:
+        spik_x, spik_y, spik_x_storlek = 400, 160, 20
         spik_NHX,spik_NHY,spik_NHsize = 745,420,30
-        #spik_VGX,spik_VGY,spik_VGsize =
-        #spik_MGX,spik_MGY,spik_MGsize =
-        #spik_HGX,spik_HGY,spik_HGsize = 
-        #spik_HX,spik_HY,spik_Hsize =
-        #spik_SX,spik_SY,spik_Ssize =
+        spik_gropX, spik_gropY,spik_gropSize = 440, 250, 150
+        spik_HangX,spik_HangY,spik_HangSize = 230, 270, 70
         ob1 = pygame.Rect(0, 450, 200, 20)     #Botten man landar på
         ob2 = pygame.Rect(200, 90, 40, 380)    #Högra väggen där man startar
         ob3 = pygame.Rect(85, 345, 115, 20)    #Den lägre av de högra platformarna av hoppusslet i starten
@@ -282,29 +258,53 @@ while True:
         ob11 = pygame.Rect(350, 500, 450, 20)  #Platformen man väntar på inför slutspurten
         ob12 = pygame.Rect(580, 0, 20, 140)    #Väggen mot takspikens högra sida
         ob13 = pygame.Rect(420, 260, 20, 80)   #Väggen till vänster om undre spiken
-        ob14 = pygame.Rect(420, 340, 220, 20)  #Platformen under den grop spikarna
+        ob14 = pygame.Rect(420, 340, 205, 20)  #Platformen under den grop spikarna
         ob15 = pygame.Rect(620, 260, 20, 100)  #Väggen till höger om den undre spiken
         obstacles = [ob1,ob2,ob3,ob4,ob5,ob6,ob7,ob8,ob9,ob10,ob11,ob12,ob13,ob14,ob15]
-        spik_kollision_NH = (circle_x + 30 >= spik_NHX and circle_x -30 <= spik_NHX + spik_NHsize and circle_y >= spik_NHY + 20)
-        if spik_kollision_NH and not fiende_kollision and not tagen_skada:    
-            hearts-=1   
-            tagen_skada = True 
-            if hearts == 0:
-                gameover = True
-        if not (fiende_kollision or spik_kollision_NH):
+        #Kontakt och skada med spikar och fienden för level två
+        fiende_kollision = (circle_x + 30 >= fiende_x and circle_x - 30 <= fiende_x + fiende_storlek and circle_y+circle_radius >= 560 )   
+        spik_kollision_NH = (circle_x + 30 >= spik_NHX and circle_x -30 <= spik_NHX + spik_NHsize and circle_y >= spik_NHY + 20 and circle_y <= spik_NHY - 20)
+        spik_kollision = (circle_x + 30 >= spik_x and circle_x -30 <= spik_x + spik_x_storlek and circle_y <= spik_y + 20)
+        spik_kollision_grop = (circle_x + 30 >= spik_gropX and circle_x -30 <= spik_gropX + spik_gropSize and circle_y <= spik_gropY + 5 and circle_y >= spik_gropY -5)
+        if kollision == False:   
+            if fiende_kollision and not tagen_skada:       
+                fiende_speed_x *= -1
+                hearts -= 1
+                circle_x, circle_y = 100, 410
+                tagen_skada = True
+                kollision = True
+                if hearts == 0:
+                    gameover = True  
+            if spik_kollision_NH and not tagen_skada:    
+                hearts-=1   
+                circle_x, circle_y = 100, 410
+                tagen_skada = True 
+                kollision = True
+                if hearts == 0:
+                    gameover = True
+            if spik_kollision and not tagen_skada:    
+                hearts-=1   
+                circle_x, circle_y = 100, 410
+                tagen_skada = True 
+                kollision = True
+                if hearts == 0:
+                    gameover = True     
+            if spik_kollision_grop and not tagen_skada: 
+                hearts-=1
+                circle_x, circle_y = 100, 410
+                tagen_skada = True
+                kollision = True
+                if hearts == 0:
+                    gameover = True   
+        if not (fiende_kollision or (spik_kollision_NH or (spik_kollision or spik_kollision_grop))):
             tagen_skada = False 
-        pygame.draw.polygon(screen, (silver), ((740,500), (800,500), (770,415)))  #Spiken nere i höger
-
-        pygame.draw.polygon(screen, (silver), ((440,340), (500,340), (470,270)))  #Vänstra gropspiken
-
-        pygame.draw.polygon(screen, (silver), ((500,340), (560,340), (530,270)))  #mittersta gropspiken
-
-        pygame.draw.polygon(screen, (silver), ((560,340), (620,340), (590,270)))  #Högra gropspiken
-
-        pygame.draw.polygon(screen, (silver), ((230,260), (300,260), (265,340)))  #Hängade spiken i slutet
-
-        pygame.draw.polygon(screen, (silver), ((350,500), (390,500), (370,455)))  #Spikhindret vid slutspurten
-        
+            kollision = False
+        pygame.draw.polygon(screen, (red), ((740,500), (800,500), (770,415)))  #Spiken nere i höger
+        pygame.draw.polygon(screen, (red), ((440,340), (500,340), (470,270)))  #Vänstra gropspiken
+        pygame.draw.polygon(screen, (red), ((500,340), (560,340), (530,270)))  #mittersta gropspiken
+        pygame.draw.polygon(screen, (red), ((560,340), (620,340), (590,270)))  #Högra gropspiken
+        pygame.draw.polygon(screen, (red), ((235,260), (280,260), (255,310)))  #Hängade spiken i slutet
+        pygame.draw.polygon(screen, (red), ((430,0), (370,0), (400,160)))      #Takspiken
 
         for obstacle in obstacles:
             for x in range(obstacle.x, obstacle.x + obstacle.width, stone.get_width()):
