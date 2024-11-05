@@ -13,6 +13,18 @@ background_image = pygame.transform.scale(background_image, (800, 600))
 #Bilder för hinder
 brick_wall = pygame.image.load("brick_wall.jpg")
 brick_wall = pygame.transform.scale(brick_wall, (100, 20))
+stone = pygame.image.load("stone.PNG")
+stone = pygame.transform.scale(stone, (10,10))
+
+#Attribut för boss
+boss = pygame.image.load("boss.PNG")
+boss = pygame.transform.scale(boss, (300,300))
+
+
+
+
+
+
 
 # Färger 
 black = (0, 0, 0)
@@ -53,9 +65,11 @@ font = pygame.font.Font(None, 74)
 small_font = pygame.font.Font(None, 36)
 
 level = 1  # Level
+level_start = False
 startmenu = True
 gameover = False
 onplatform = False
+
 
 def show_start_menu(): #startskärm
     screen.fill(black)
@@ -105,6 +119,7 @@ while True:
         show_start_menu()
         continue
     elif gameover:
+        level_start = False
         show_gameover()
         continue  
 
@@ -164,8 +179,9 @@ while True:
     fiende_x += fiende_speed_x
     if level == 1 and fiende_x >= 750 or fiende_x <= 0:
         fiende_speed_x *= -1 
-    if level == 2 and fiende_x >= 720:
-        fiende_x = 150
+    if level == 2 and fiende_x >= 850:
+        fiende_x = -50
+        fiende_speed_x = 15
     
     # Kontrollera kollision med fienden
     fiende_kollision = (circle_x + 30 >= fiende_x and circle_x - 30 <= fiende_x + fiende_storlek and circle_y + circle_radius >= 560)
@@ -224,6 +240,8 @@ while True:
 
 
 
+
+
 ##Hinder
 
     #Skapar ett hinder och ger den en hitbox
@@ -233,8 +251,71 @@ while True:
         obstacle2 = pygame.Rect(400, 350, 70, 250)
         obstacles =  [obstacle1, obstacle2]
 
-    for obstacle in obstacles:
-        pygame.draw.rect(screen, black, obstacle)   
+        for obstacle in obstacles:
+            for x in range(obstacle.x, obstacle.x + obstacle.width, brick_wall.get_width()):
+                for y in range(obstacle.y, obstacle.y + obstacle.height, brick_wall.get_height()):
+                    screen.blit(brick_wall, (x, y))     
+    
+    
+    #Level 2 saker
+    if level ==2 and not level_start: #Ge karatären en specifik startpunkt för map-building
+        circle_x, circle_y = 100, 410
+        fiende_x, fiende_y = 720, 530
+        level_start = True
+    if level == 2:
+        spik_NHX,spik_NHY,spik_NHsize = 745,420,30
+        #spik_VGX,spik_VGY,spik_VGsize =
+        #spik_MGX,spik_MGY,spik_MGsize =
+        #spik_HGX,spik_HGY,spik_HGsize = 
+        #spik_HX,spik_HY,spik_Hsize =
+        #spik_SX,spik_SY,spik_Ssize =
+        ob1 = pygame.Rect(0, 450, 200, 20)     #Botten man landar på
+        ob2 = pygame.Rect(200, 90, 40, 380)    #Högra väggen där man startar
+        ob3 = pygame.Rect(85, 345, 115, 20)    #Den lägre av de högra platformarna av hoppusslet i starten
+        ob4 = pygame.Rect(0, 245, 100, 20)     #Den vänstra av platforma av hoppusslet i starten
+        ob5 = pygame.Rect(85, 145, 115, 20)    #Den högre av de högra platformarna av hoppusslet i starten
+        ob6 = pygame.Rect(0, 0, 800, 1)        #Takblockerare så att man inte kan hoppa ur skärmen
+        ob7 = pygame.Rect(210, 240, 230, 20)   #Platformen under takspiken
+        ob8 = pygame.Rect(620, 240, 90, 20)    #Platformen man hoppar till från under spiken
+        ob9 = pygame.Rect(700, 90, 20, 170)    #Väggen till droppet uppe till höger
+        ob10 = pygame.Rect(600, 120, 20, 20)   #Platformen bredvid takspiken
+        ob11 = pygame.Rect(350, 500, 450, 20)  #Platformen man väntar på inför slutspurten
+        ob12 = pygame.Rect(580, 0, 20, 140)    #Väggen mot takspikens högra sida
+        ob13 = pygame.Rect(420, 260, 20, 80)   #Väggen till vänster om undre spiken
+        ob14 = pygame.Rect(420, 340, 220, 20)  #Platformen under den grop spikarna
+        ob15 = pygame.Rect(620, 260, 20, 100)  #Väggen till höger om den undre spiken
+        obstacles = [ob1,ob2,ob3,ob4,ob5,ob6,ob7,ob8,ob9,ob10,ob11,ob12,ob13,ob14,ob15]
+        spik_kollision_NH = (circle_x + 30 >= spik_NHX and circle_x -30 <= spik_NHX + spik_NHsize and circle_y >= spik_NHY + 20)
+        if spik_kollision_NH and not fiende_kollision and not tagen_skada:    
+            hearts-=1   
+            tagen_skada = True 
+            if hearts == 0:
+                gameover = True
+        if not (fiende_kollision or spik_kollision_NH):
+            tagen_skada = False 
+        pygame.draw.polygon(screen, (silver), ((740,500), (800,500), (770,415)))  #Spiken nere i höger
+
+        pygame.draw.polygon(screen, (silver), ((440,340), (500,340), (470,270)))  #Vänstra gropspiken
+
+        pygame.draw.polygon(screen, (silver), ((500,340), (560,340), (530,270)))  #mittersta gropspiken
+
+        pygame.draw.polygon(screen, (silver), ((560,340), (620,340), (590,270)))  #Högra gropspiken
+
+        pygame.draw.polygon(screen, (silver), ((230,260), (300,260), (265,340)))  #Hängade spiken i slutet
+
+        pygame.draw.polygon(screen, (silver), ((350,500), (390,500), (370,455)))  #Spikhindret vid slutspurten
+        
+
+        for obstacle in obstacles:
+            for x in range(obstacle.x, obstacle.x + obstacle.width, stone.get_width()):
+                for y in range(obstacle.y, obstacle.y + obstacle.height, stone.get_height()):
+                    screen.blit(stone, (x, y))
+
+    
+    
+    
+    
+    #Kollision
     circle_rect = pygame.Rect(circle_x - circle_radius, circle_y - circle_radius, circle_radius * 2, circle_radius * 2)
     
     onplatform = False
@@ -264,9 +345,7 @@ while True:
         if not onplatform:
             onplatform = False
 
-
+    
 
     pygame.display.flip()
     pygame.time.delay(25)
-
-
