@@ -1,5 +1,5 @@
 import pygame
-
+import math
 import random
 
 boss_width = 200
@@ -12,8 +12,8 @@ boss_speed_y = random.choice([-3,-2,2,3])
 
 
 boss = pygame.image.load("boss.PNG")
-DVD = pygame.image.load("DVD.PNG")
-arm = pygame.image.load("arm.JPG")   
+DVD = pygame.image.load("dvd.PNG")
+arm = pygame.image.load("arm.PNG")   
 
 # Funktion för att rita bossen
 def spawn_boss(screen):
@@ -21,7 +21,7 @@ def spawn_boss(screen):
         scaled_arm = pygame.transform.scale(arm,(50,50))
         scaled_boss = pygame.transform.scale(boss, (boss_width, boss_height))
         screen.blit(scaled_boss, (boss_x, boss_y))
-        screen.blit(scaled_arm, (boss_x,boss_y))
+        screen.blit(scaled_arm, (boss_x-38,boss_y+30))
 
 def boss_movment():
     global boss_x,boss_y, boss_speed_x, boss_speed_y
@@ -39,9 +39,32 @@ def boss_collaterate(circle_x, circle_y,):
     return False
 
 
+DvD_projectiles = []
 def boss_attack(screen):
     scaled_DVD = pygame.transform.scale(DVD,(30,30))
-    screen.blit(scaled_DVD,(boss_x,boss_y))
+    screen.blit(scaled_DVD,(boss_x-38,boss_y+30))
+
+    if random.randint(1,75) == 1:
+        
+        angle = random.uniform(0, 2 * math.pi)
+        speed = 5  
+        speed_x = speed * math.cos(angle)
+        speed_y = speed * math.sin(angle)
+
+        DvD_projectiles.append({'x': boss_x - 38,'y': boss_y + 30,'speed_x': speed_x,'speed_y': speed_y})
+
+    
+    for dvd in DvD_projectiles[:]:
+        dvd['x'] += dvd['speed_x']
+        dvd['y'] += dvd['speed_y']
+
+        screen.blit(pygame.transform.scale(DVD, (30, 30)), (dvd['x'], dvd['y']))
+
+        if dvd['x'] < -50 or dvd['x'] > 850 or  dvd['y'] < -50 or dvd['y'] > 650:
+             DvD_projectiles.remove(dvd)
+
+    
+
 
     
 
@@ -58,4 +81,3 @@ def boss_attack(screen):
 
 
     
-
