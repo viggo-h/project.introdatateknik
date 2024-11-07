@@ -412,7 +412,7 @@ while True:
 
 
     if level == 3 and level_start:
-        background_image = pygame.image.load("boss_background.PNG")
+        background_image = pygame.image.load("boss_background.JPG")
         background_image = pygame.transform.scale(background_image, (800, 600))
         level_start = False
         fiende_x, fiende_y = 900,900
