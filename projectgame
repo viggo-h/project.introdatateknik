@@ -1,5 +1,6 @@
 
 import pygame
+import random
 import sys
 pygame.init()
 
@@ -21,17 +22,17 @@ stone = pygame.transform.scale(stone, (10,10))
 boss = pygame.image.load("boss.PNG")
 boss = pygame.transform.scale(boss, (300,300))
 
-
 # Färger 
 black = (0, 0, 0)
 white = (255, 255, 255)
-blue=(0,0,255)
+blue = (0,0,255)
 red = (255, 0, 0)
 silver =(192, 192, 192)
 yellow =(255,223,0)
+brown = (90, 78, 68)
 
 # Huvudkaraktär position 
-circle_x, circle_y = 40, 300
+circle_x, circle_y = 40, 500
 circle_radius = 40
 circle_speed_x = 10
 circle_speed_y = 0
@@ -45,9 +46,11 @@ hearts = 3
 tagen_skada = False
 kollision = False
 
-fiende_x, fiende_y = 300, 520
+#fiende
+fiende_x, fiende_y = 540, 50
 fiende_storlek = 80
-fiende_speed_x = -5 
+fiende_speed_x = 5
+fiende_speed_y = 5
 fiende_image = pygame.image.load("Thwomp.gif")
 fiende_image = pygame.transform.scale(fiende_image, (80, 80))  
 
@@ -57,16 +60,26 @@ cube_size = 60
 cube_image = pygame.image.load("goldapple.gif")
 cube_image = pygame.transform.scale(cube_image, (cube_size, cube_size))  
 
- 
+
 # Text
 font = pygame.font.Font(None, 74)
 small_font = pygame.font.Font(None, 36)
 
-level = 1  # Level
+#level osv
+level = 1  
 level_start = False
 startmenu = True
 gameover = False
 onplatform = False
+
+#lava
+lavared = (255, 48, 48)
+lava_x = 375
+lava_y = 580
+lava_width = 250
+lava_height = 20
+lava = pygame.Rect(lava_x, lava_y, lava_width, lava_height)
+
 
 
 def show_start_menu(): #startskärm
@@ -105,8 +118,8 @@ while True:
         elif gameover and event.type == pygame.KEYDOWN and event.key == pygame.K_RETURN: #gameover spelet startar om vid enter
             if event.key == pygame.K_RETURN: #reset spelet
                 circle_x, circle_y = 40, 300
-                fiende_x, fiende_y = 400, 530
-                fiende_speed_x = 5
+                fiende_x, fiende_y = 540, 50
+                fiende_speed_y = 5
                 level = 1
                 hearts = 3
                 gameover = False
@@ -118,7 +131,6 @@ while True:
         continue
     elif gameover:
         level_start = False
-        circle_speed_x = 10
         show_gameover()
         continue  
 
@@ -166,18 +178,29 @@ while True:
     if level == 1 and circle_x == 760 and circle_y == 560: ##level 1
         circle_x = 0
         circle_y = 560
-        fiende_x = 150
+        fiende_x = 40
         fiende_y = 520
+        fiende_speed_x = 10
         level += 1
     
     if level == 2:
+        fiende_speed_y = 0
         fiende_speed_x = 10
+        fiende_x = 150
+        fiende_y = 520
 
     # Fiende rörelse i x led
-    
-    fiende_x += fiende_speed_x
-    if level == 1 and fiende_x >= 750 or fiende_x <= 0:
-        fiende_speed_x *= -1 
+    if fiende_speed_y > 0:
+        fiende_y += 2*fiende_speed_y
+    if fiende_speed_y < 0:
+        fiende_y += fiende_speed_y
+        
+    if level == 1 and fiende_y >= 500 or fiende_y <= 0:
+        if fiende_speed_y == 8:
+            fiende_speed_y = 0
+        else:
+            fiende_speed_y *= -1 
+        
     if level == 2 and fiende_x >= 850:
         fiende_x = -50
         fiende_speed_x = 15
@@ -190,14 +213,12 @@ while True:
         pygame.draw.circle(screen, black, (int(circle_x), int(circle_y)), circle_radius)
         if keys[pygame.K_LEFT] or keys[pygame.K_RIGHT]:
             pygame.draw.circle(screen, blue, (int(circle_x), int(circle_y)), int(circle_radius * 0.8))
-    
     else: #extra efffekter om man gör attack ner
-        pygame.draw.line(screen,black, (int(circle_x),int(circle_y)), (int(circle_x),int(circle_y-100)) ,8)
-        pygame.draw.line(screen,black, (int(circle_x-20),int(circle_y)), (int(circle_x-30),int(circle_y-100)) ,8)
-        pygame.draw.line(screen,black, (int(circle_x+20),int(circle_y)), (int(circle_x+30),int(circle_y-100)) ,8)
         pygame.draw.circle(screen, red, (int(circle_x), int(circle_y)), circle_radius)
     #fiende 
+    
     screen.blit(fiende_image,(fiende_x,fiende_y))
+    
     #level
     
     environment(level)
@@ -213,30 +234,62 @@ while True:
     #Skapar ett hinder och ger den en hitbox
     obstacles = []
     if level == 1: #level 1 hinder
-        obstacle1 = pygame.Rect(100, 450, 200, 40)
-        obstacle2 = pygame.Rect(400, 350, 70, 250)
-        obstacles =  [obstacle1, obstacle2]
-        for obstacle in obstacles:
-            for x in range(obstacle.x, obstacle.x + obstacle.width, brick_wall.get_width()):
-                for y in range(obstacle.y, obstacle.y + obstacle.height, brick_wall.get_height()):
-                    screen.blit(brick_wall, (x, y))     
-        #Kontrollerar kontakt och skada med fienden
-        fiende_kollision = (circle_x + 30 >= fiende_x and circle_x - 30 <= fiende_x + fiende_storlek and circle_y+circle_radius >= 560 )
-        if fiende_kollision and not on_ground:
-            fiende_x = -100
-            fiende_y = -100
-            fiende_speed_x = 0
-            tagen_skada = True
-        if fiende_kollision and not tagen_skada:       
-            fiende_speed_x *= -1
+        obstacle1 = pygame.Rect(200, 425, 100., 50)
+        obstacle2 = pygame.Rect(0, 300, 200, 50)
+        obstacle3 = pygame.Rect(365, 200, 75, 50)
+        obstacle4 = pygame.Rect(625, 150, 80, 450)
+        obstacle5 = pygame.Rect(175, 300, 40, 175)
+        obstacles =  [obstacle1, obstacle2, obstacle3, obstacle4, obstacle5]
+        for obstacle in obstacles: 
+            pygame.draw.rect(screen, brown, obstacle)
+        
+        player_rect = pygame.Rect(circle_x, circle_y, circle_radius*1.25, circle_radius*1.25)
+        fiende_rect = pygame.Rect(fiende_x, fiende_y, fiende_storlek, fiende_storlek)
+        
+        fiende_kollision = player_rect.colliderect(fiende_rect)
+        pygame.draw.rect(screen, lavared , lava)
+        
+        player_rect = pygame.Rect(circle_x, circle_y, circle_radius, circle_radius)
+        if player_rect.colliderect(lava):
             hearts -= 1
+            if hearts <= 0:
+                gameover = True
+            else:
+            # Återställ spelarens position
+                circle_x, circle_y = 40, 400
+                player_speed_y = 0  # Nollställ spelarens vertikala hastighet
+
+    # Kontrollera om spelet ska avslutas
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            running = False
+        
+        
+        
+    if fiende_kollision:
+    # Kontrollera om spelaren landar ovanpå fienden
+        if circle_y + circle_radius <= fiende_y + 15 and circle_speed_y > 0:  # Om spelaren är nära ovanifrån
+        # Fienden "försvinner" om spelaren landar på den
+            circle_speed_y = jump_strength
+            fiende_speed_y = 8
+            on_ground = True  # Markera spelaren som på marken efter landning
+            tagen_skada = False  # Spelaren tar ingen skada när den landar korrekt
+        elif not tagen_skada and circle_speed_y < 0:
+        # Spelaren tar skada om den krockar från sidan eller underifrån
+            fiende_speed_y *=-1  # Fienden byter riktning
+            hearts -= 1
+            circle_x, circle_y = 40, 400
             tagen_skada = True
             if hearts == 0:
-                gameover = True  
-        if not (fiende_kollision):
-                tagen_skada = False 
-    
-    
+                gameover = True  # Spelet tar slut om inga hjärtan återstår
+    else:
+        tagen_skada = False 
+
+
+
+
+
+
     #Level 2 saker
     if level ==2 and not level_start: #Ge karatären en specifik startpunkt för map-building
         circle_x, circle_y = 100, 410
@@ -272,32 +325,28 @@ while True:
             if fiende_kollision and not tagen_skada:       
                 fiende_speed_x *= -1
                 hearts -= 1
-                circle_speed_x, circle_speed_y = 0,0
-                circle_x, circle_y = 100, 395
+                circle_x, circle_y = 100, 410
                 tagen_skada = True
                 kollision = True
                 if hearts == 0:
                     gameover = True  
             if spik_kollision_NH and not tagen_skada:    
                 hearts-=1   
-                circle_speed_x, circle_speed_y = 0,0
-                circle_x, circle_y = 100, 395
+                circle_x, circle_y = 100, 410
                 tagen_skada = True 
                 kollision = True
                 if hearts == 0:
                     gameover = True
             if spik_kollision and not tagen_skada:    
                 hearts-=1   
-                circle_speed_x, circle_speed_y = 0,0
-                circle_x, circle_y = 100, 395
+                circle_x, circle_y = 100, 410
                 tagen_skada = True 
                 kollision = True
                 if hearts == 0:
                     gameover = True     
             if spik_kollision_grop and not tagen_skada: 
                 hearts-=1
-                circle_speed_x, circle_speed_y = 0,0
-                circle_x, circle_y = 100, 395
+                circle_x, circle_y = 100, 410
                 tagen_skada = True
                 kollision = True
                 if hearts == 0:
@@ -305,7 +354,6 @@ while True:
         if not (fiende_kollision or (spik_kollision_NH or (spik_kollision or spik_kollision_grop))):
             tagen_skada = False 
             kollision = False
-            circle_speed_x = 10
         pygame.draw.polygon(screen, (red), ((740,500), (800,500), (770,415)))  #Spiken nere i höger
         pygame.draw.polygon(screen, (red), ((440,340), (500,340), (470,270)))  #Vänstra gropspiken
         pygame.draw.polygon(screen, (red), ((500,340), (560,340), (530,270)))  #mittersta gropspiken
@@ -318,10 +366,6 @@ while True:
                 for y in range(obstacle.y, obstacle.y + obstacle.height, stone.get_height()):
                     screen.blit(stone, (x, y))
 
-    
-    
-    
-    
     #Kollision
     circle_rect = pygame.Rect(circle_x - circle_radius, circle_y - circle_radius, circle_radius * 2, circle_radius * 2)
     
