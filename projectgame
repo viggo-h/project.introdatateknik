@@ -8,9 +8,24 @@ pygame.init()
 from boss import spawn_boss,boss_movment, boss_collaterate, boss_attack
 boss_exist = False
 
+
 # Skapa fönstret
 screen = pygame.display.set_mode((800, 600))
 pygame.display.set_caption("Pygame")
+
+#Bilder på spelaren
+mario_still = pygame.image.load("mario_still.PNG")
+mario_still = pygame.transform.scale(mario_still, (70,83))
+mario_running_right = pygame.image.load("mario_running_right.PNG")
+mario_running_right = pygame.transform.scale(mario_running_right, (80,83)) #(Facing right)
+mario_running_left = pygame.image.load("mario_running_left.PNG")
+mario_running_left = pygame.transform.scale(mario_running_left, (80,83))
+mario_jumping_right = pygame.image.load("mario_jumping_right.PNG")
+mario_jumping_right = pygame.transform.scale(mario_jumping_right, (75,83))
+mario_jumping_left = pygame.image.load("mario_jumping_left.PNG")
+mario_jumping_left = pygame.transform.scale(mario_jumping_left, (75,83))
+mario_groundpound = pygame.image.load("mario_groundpound.PNG")
+mario_groundpound = pygame.transform.scale(mario_groundpound, (120,85))
 
 # Bakgrundsbild
 background_image = pygame.image.load("background.png")
@@ -77,9 +92,9 @@ cube_x, cube_y = 713, 520
 cube_size_x,cube_size_y = 80,100  
 pipe_image = pygame.image.load("pipe.PNG")
 pipe_image = pygame.transform.scale(pipe_image, (cube_size_x, cube_size_y))  
+pipe_image_rotated = pygame.transform.rotate(pipe_image, 90)
 
-
-# Text
+#Text
 font = pygame.font.Font(None, 74)
 small_font = pygame.font.Font(None, 36)
 
@@ -160,12 +175,22 @@ while True:
 
     # Tangenttryckningar
     keys = pygame.key.get_pressed()
+    
+    movment = False
+    movment_right = False
+    movment_left = False
+    movment_up = False
+    movment_groundpound = False
 
     #x-led rörelse
     if keys[pygame.K_LEFT]:
         circle_x -= circle_speed_x
+        movment = True
+        movment_left = True
     if keys[pygame.K_RIGHT]:
         circle_x += circle_speed_x
+        movment = True
+        movment_right = True
 
     # Hopp och dubbelhopp
     if keys[pygame.K_UP] and on_ground:
@@ -173,16 +198,27 @@ while True:
         circle_speed_y = jump_strength
         on_ground = False
         doublejump = True
+        movment = True
+        movment_up = True
+        
+    
     elif keys[pygame.K_UP] and doublejump and circle_y < 500:
         circle_speed_y = jump_strength
         doublejump = False
-        
+        movment = True
+        movment_up = True
+
     # snabbt ner
     if keys[pygame.K_DOWN] and on_ground == False and onplatform== False:
         gravity *= 1.25
         damage = 2
+        movment = True
+        movment_groundpound = True
     else:
         gravity = 0.5
+
+    
+    
     
     # Gravitation och vertikal rörelse
     if onplatform == False:
@@ -234,16 +270,9 @@ while True:
 
     #Uppdatera skärmen
     screen.blit(background_image, (0, 0))
-
-    if gravity == 0.5:
-        pygame.draw.circle(screen, black, (int(circle_x), int(circle_y)), circle_radius)
-        if keys[pygame.K_LEFT] or keys[pygame.K_RIGHT]:
-            pygame.draw.circle(screen, blue, (int(circle_x), int(circle_y)), int(circle_radius * 0.8))
-    else: #extra efffekter om man gör attack ner
-        pygame.draw.circle(screen, red, (int(circle_x), int(circle_y)), circle_radius)
-    #fiende 
-    
     screen.blit(fiende_image,(fiende_x,fiende_y))
+    
+    
     if level == 2:
         screen.blit(fiende2_image, (fiende2_X, fiende2_y))
     
@@ -314,6 +343,7 @@ while True:
     else:
         tagen_skada = False 
 
+
     #Level 2 saker
     if level ==2 and not level_start: #Ge karatären en specifik startpunkt för map-building
         fiende_speed_y = 0
@@ -322,13 +352,13 @@ while True:
         background_image = pygame.image.load("cave.jpg")
         background_image = pygame.transform.scale(background_image, (800, 700))
         
-        pipe_image = pygame.transform.rotate(pipe_image, 90)
-        
+       
         
         level_start = True
     
     
     if level == 2:
+        screen.blit(fiende2_image, (fiende2_X, fiende2_y))
         fiende_image = pygame.image.load("bulletbill.png")
         fiende_image = pygame.transform.scale(fiende_image, (105, 85)) 
         spik_x, spik_y, spik_x_storlek = 400, 160, 20
@@ -415,7 +445,7 @@ while True:
                     screen.blit(stone, (x, y))
         #Kannonen som skjuter raketerna 
         screen.blit(cannon_image,(cannon_x,cannon_y))
-        screen.blit(pipe_image,(cube_x,cube_y))
+        screen.blit(pipe_image_rotated,(cube_x,cube_y))
 
 
     if level == 3 and level_start:
@@ -444,8 +474,25 @@ while True:
             gameover = True
 
 
-
-
+    #"Animation" för mario
+    if not movment and on_ground:#Om spelaren står stilla
+        screen.blit(mario_still,(circle_x-(circle_radius -2),circle_y-(circle_radius +3)))
+    
+    if movment_groundpound:
+        screen.blit(mario_groundpound,(circle_x-(circle_radius +28),circle_y-(circle_radius +5))) 
+    elif movment_right and not on_ground: #Om spelaren hoppar till höger
+        screen.blit(mario_jumping_right,(circle_x-(circle_radius -2),circle_y-(circle_radius +3)))
+    elif movment_left and not on_ground: #Om spelaren hopper til vänster
+        screen.blit(mario_jumping_left,(circle_x-(circle_radius -2),circle_y-(circle_radius +3)))
+    elif not on_ground: #Om spelare bara är i luften
+       screen.blit(mario_jumping_right,(circle_x-(circle_radius -2),circle_y-(circle_radius +3)))
+    elif movment_right and on_ground:  #Om spelaren springer till höger 
+        screen.blit(mario_running_right,(circle_x-(circle_radius -2),circle_y-(circle_radius +3)))
+    elif movment_left and on_ground:   #Om spelaren springer till vänster
+        screen.blit(mario_running_left,(circle_x-(circle_radius -2),circle_y-(circle_radius +3))) 
+    
+    
+    
     #Kollision
     circle_rect = pygame.Rect(circle_x - circle_radius, circle_y - circle_radius, circle_radius * 2, circle_radius * 2)
     
