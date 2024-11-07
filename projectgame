@@ -224,10 +224,10 @@ while True:
             fiende_speed_y *= -1 
     fiende_x += fiende_speed_x
     fiende2_X += fiende2_speedX 
-    if level == 2 and fiende_x >= 850:
+    if level == 2 and fiende_x >= 650:
         fiende_x = -50
         fiende_speed_x = 15
-    if level == 2 and fiende2_X >= 850:
+    if level == 2 and fiende2_X >= 650:
         fiende2_X = -50
         fiende2_speedX = 10
     
@@ -253,15 +253,16 @@ while True:
     #Life counter
     lives(hearts)   
     
-    if level == 1: #level 1 goal
-        
-        screen.blit(pipe_image,(cube_x,cube_y))
+   
 
 ##Hinder
 
     #Skapar ett hinder och ger den en hitbox
     obstacles = []
     if level == 1: #level 1 hinder
+        
+        screen.blit(pipe_image,(cube_x,cube_y))   #Röret för nästa level
+       
         obstacle1 = pygame.Rect(200, 425, 100., 50)
         obstacle2 = pygame.Rect(0, 300, 200, 50)
         obstacle3 = pygame.Rect(365, 200, 75, 50)
@@ -317,10 +318,16 @@ while True:
     if level ==2 and not level_start: #Ge karatären en specifik startpunkt för map-building
         fiende_speed_y = 0
         circle_x, circle_y = 100, 410
-        fiende_x, fiende_y = 420, 530
+        fiende_x, fiende_y = -420, 530
         background_image = pygame.image.load("cave.jpg")
         background_image = pygame.transform.scale(background_image, (800, 700))
+        
+        pipe_image = pygame.transform.rotate(pipe_image, 90)
+        
+        
         level_start = True
+    
+    
     if level == 2:
         fiende_image = pygame.image.load("bulletbill.png")
         fiende_image = pygame.transform.scale(fiende_image, (105, 85)) 
@@ -408,7 +415,7 @@ while True:
                     screen.blit(stone, (x, y))
         #Kannonen som skjuter raketerna 
         screen.blit(cannon_image,(cannon_x,cannon_y))
-
+        screen.blit(pipe_image,(cube_x,cube_y))
 
 
     if level == 3 and level_start:
