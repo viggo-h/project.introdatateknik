@@ -5,10 +5,13 @@ import random
 boss_width = 200
 boss_height = 200
 boss_hitpoints = 3
-boss_x, boss_y = random.randint(350,600) , 300
-boss_speed_x = -3.5       #Måste updatera/köra filen för att ändringarna ska ske
-boss_speed_y = random.choice([-3,-2,2,3])
+boss_x, boss_y = random.randint(400,600) , 300 #Ger lite random startpos och hastighet för att ge bossen olika "pattern"
+boss_speed_x = -3.5       
+boss_speed_y = random.uniform(-3,-2)
 
+#Attack
+dvd_radius = 25  #Större hitbox leder till buggigare hitscan  (20-30 rekomenderas)
+attack_freq = 30   #Lägre siffor = mer attacker. (1/attack_freq  per frame att attack sker, 30-75 rekomenderas) 
 
 
 boss = pygame.image.load("boss.PNG")
@@ -37,14 +40,20 @@ def boss_collaterate(circle_x, circle_y,):
     if boss_x <= circle_x <= boss_x + boss_width    and   boss_y <= circle_y <= boss_y + boss_height:
         return True
     return False
+    
+
+
 
 
 DvD_projectiles = []
-def boss_attack(screen):
-    scaled_DVD = pygame.transform.scale(DVD,(30,30))
+
+def boss_attack(screen,circle_x,circle_y,circle_radius):
+    global dvd_radius
+    
+    scaled_DVD = pygame.transform.scale(DVD,(dvd_radius,dvd_radius))
     screen.blit(scaled_DVD,(boss_x-38,boss_y+30))
 
-    if random.randint(1,75) == 1:
+    if random.randint(1,attack_freq) == 1:
         
         angle = random.uniform(0, 2 * math.pi)
         speed = 5  
@@ -55,13 +64,23 @@ def boss_attack(screen):
 
     
     for dvd in DvD_projectiles[:]:
+        
+
         dvd['x'] += dvd['speed_x']
         dvd['y'] += dvd['speed_y']
+        screen.blit(pygame.transform.scale(DVD, (dvd_radius, dvd_radius)), (dvd['x'], dvd['y']))
 
-        screen.blit(pygame.transform.scale(DVD, (30, 30)), (dvd['x'], dvd['y']))
+        #För att kolla kollision räknar vi ut avståndet från DvD skivan och spelaren
+        distance = math.sqrt((dvd['x'] + dvd_radius - circle_x) ** 2 + (dvd['y'] + dvd_radius - circle_y) ** 2)
 
+        if distance <= circle_radius + dvd_radius - (dvd_radius/1.5): #om avståndet är mindre än de sammanlagda radiusen är det en kollision
+            return True                                 #Tar bort lite som en finsjustering då "hitboxen" blev för stor annars
+
+        
         if dvd['x'] < -50 or dvd['x'] > 850 or  dvd['y'] < -50 or dvd['y'] > 650:
              DvD_projectiles.remove(dvd)
+        
+    
 
     
 
