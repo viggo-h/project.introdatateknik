@@ -4,6 +4,10 @@ import random
 import sys
 pygame.init()
 
+
+from boss import spawn_boss,boss_movment, boss_collaterate, boss_attack
+boss_exist = False
+
 # Skapa fönstret
 screen = pygame.display.set_mode((800, 600))
 pygame.display.set_caption("Pygame")
@@ -69,10 +73,10 @@ cannon_image = pygame.image.load("billblaster.png")
 cannon_image = pygame.transform.scale(cannon_image, (cannon_size, cannon_size))
 
 #vinna grejer
-cube_x, cube_y = 720, 520
-cube_size = 60  
-cube_image = pygame.image.load("goldapple.gif")
-cube_image = pygame.transform.scale(cube_image, (cube_size, cube_size))  
+cube_x, cube_y = 713, 520
+cube_size_x,cube_size_y = 80,100  
+pipe_image = pygame.image.load("pipe.PNG")
+pipe_image = pygame.transform.scale(pipe_image, (cube_size_x, cube_size_y))  
 
 
 # Text
@@ -195,7 +199,7 @@ while True:
         doublejump = False
         
     # Uppdatera level 
-    if level == 1 and circle_x == 760 and circle_y == 560: ##level 1
+    if (level == 1  or level == 2 )and circle_x >= 730 and circle_y >= 540: ##level 1
         circle_x = 0
         circle_y = 560
         fiende_x = 40
@@ -250,8 +254,8 @@ while True:
     lives(hearts)   
     
     if level == 1: #level 1 goal
-        cube_x, cube_y = 735, 535
-        screen.blit(cube_image,(cube_x,cube_y))
+        
+        screen.blit(pipe_image,(cube_x,cube_y))
 
 ##Hinder
 
@@ -404,6 +408,36 @@ while True:
                     screen.blit(stone, (x, y))
         #Kannonen som skjuter raketerna 
         screen.blit(cannon_image,(cannon_x,cannon_y))
+
+
+
+    if level == 3 and level_start:
+        background_image = pygame.image.load("boss_background.PNG")
+        background_image = pygame.transform.scale(background_image, (800, 600))
+        level_start = False
+        fiende_x, fiende_y = 900,900
+        fiende2_x,fiende2_y = 900,900
+    
+    
+    if level == 3:
+
+        #Hinder och annat för level 3 ska vara här
+        
+       
+        
+        if not boss_exist:
+            boss_exist = True
+
+        
+        spawn_boss(screen), boss_movment(), boss_attack(screen,circle_x,circle_y,circle_radius)
+        boss_collision = boss_collaterate(circle_x, circle_y)
+        boss_attack_collision = boss_attack(screen,circle_x,circle_y,circle_radius)
+        if boss_collision or boss_attack_collision and not tagen_skada:
+            tagen_skada = True
+            gameover = True
+
+
+
 
     #Kollision
     circle_rect = pygame.Rect(circle_x - circle_radius, circle_y - circle_radius, circle_radius * 2, circle_radius * 2)
