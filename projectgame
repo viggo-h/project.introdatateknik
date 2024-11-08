@@ -247,11 +247,11 @@ while True:
         circle_x = 0
         circle_y = 560
         level += 1
-    if level == 4 and (circle_x >= 740 and (circle_y >= 350 or circle_y <=300)):
+    if level == 4 and (circle_x >= 740 and (240<=circle_y<=300)):
         circle_x = 0
         circle_y = 560
         level +=1
-    if level == 5 and circle_x >= 740 and circle_y >= 570:
+    if level == 5 and ((380<=circle_x<=440) and (290<=circle_y<=350)):
         level +=1
 
     #Låt detta stå kvar
@@ -520,8 +520,24 @@ while True:
         screen.blit(proceed_button,(750,270))
 
     if level == 5:
+        objek1 = pygame.Rect(100,480,30,20) #Vänster sida, nerifrån och upp
+        objek2 = pygame.Rect(300,350,30,20)
+        objek3 = pygame.Rect(90,240,30,20)
+        objek4 = pygame.Rect(270,115,30,20)
+        
+        objek5 = pygame.Rect(705,475,30,20) #Höger sida nerifrån och upp
+        objek6 = pygame.Rect(570,340,30,20)
+        objek7 = pygame.Rect(600,220,30,20)
+        objek8 = pygame.Rect(705,110,30,20)
+        objek9 = pygame.Rect(770,380,30,20)
 
-        obstacles=[]
+        objek10 = pygame.Rect(370,350,100,20) #Mitten
+        objek11 = pygame.Rect(350,100,20,250)
+        objek12 = pygame.Rect(470,100,20,250)
+        objek13 = pygame.Rect(470,350,5,5)
+        objek14 = pygame.Rect(360,350,5,5)
+
+        obstacles=[objek1,objek2,objek3,objek4,objek5,objek6,objek7,objek8,objek9,objek10,objek11,objek12,objek13,objek14]
         for obstacle in obstacles:
             for x in range(obstacle.x, obstacle.x + obstacle.width, stone.get_width()):
                 for y in range(obstacle.y, obstacle.y + obstacle.height, stone.get_height()):
@@ -533,7 +549,7 @@ while True:
         if boss_collision or boss_attack_collision and not tagen_skada:
             tagen_skada = True
             gameover = True
-        screen.blit(proceed_button,(750,580))
+        screen.blit(proceed_button,(400,320))
    
     #"Animation" för mario
     if not movment and on_ground:#Om spelaren står stilla
