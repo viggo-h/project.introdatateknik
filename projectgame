@@ -33,6 +33,8 @@ proceed_button = pygame.transform.scale(proceed_button,(30,30))
 # Bakgrundsbild
 background_image = pygame.image.load("background.png")
 background_image = pygame.transform.scale(background_image, (800, 600))  
+start_background_image = pygame.image.load("Arcade Gamer.PNG")
+start_background_image = pygame.transform.scale(start_background_image, (800,600))
 
 #Bilder för hinder
 brick_wall = pygame.image.load("brick_wall.jpg")
@@ -40,9 +42,31 @@ brick_wall = pygame.transform.scale(brick_wall, (100, 40))
 stone = pygame.image.load("stone.PNG")
 stone = pygame.transform.scale(stone, (10,10))
 
-#Attribut för boss
-boss = pygame.image.load("boss.PNG")
-boss = pygame.transform.scale(boss, (300,300))
+sound_effects = {
+    "jump": pygame.mixer.Sound("mario_jump_soundsfx.mp3"),
+    #"die": , 
+    "boss_talk1": pygame.mixer.Sound("boss_monologue1.mp3"),
+    "victory": pygame.mixer.Sound("victory_music.mp3"),
+}   
+
+
+music_tracks = {
+    "start_menu": "start_menu_music.mp3",
+    1: "level1_music.mp3",
+    2: "level2_music.mp3",
+    3: "boss_music_phase1.mp3",
+    4: "boss_music_phase1.mp3",
+    5: "boss_music_phase1.mp3",
+    "gameover": "gameover_music.mp3"
+}
+def play_music(track_key):
+    if track_key in music_tracks:
+        pygame.mixer.music.load(music_tracks[track_key])
+        pygame.mixer.music.play(-1)
+
+play_music("start_menu") 
+gameover_music_played, level1_music, level2_music, level3_music, level4_music,level5_music,boss_talk1,boss_encountered = False,False,False,False,False,False,False,False
+
 
 # Färger 
 black = (0, 0, 0)
@@ -62,8 +86,9 @@ circle_speed_x = 10
 circle_speed_y = 0
 jump_strength = -10
 gravity = 0.5
-on_ground = False
-doublejump = False  
+on_ground,doublejump,movment_lock,jumping = False,False,False,False
+
+
 
 #Liv och skada
 hearts = 3
@@ -119,13 +144,9 @@ lava = pygame.Rect(lava_x, lava_y, lava_width, lava_height)
 
 
 def show_start_menu(): #startskärm
-    screen.fill(black)
-    title_text = font.render("Welcome to the Game!", True, white)
-    start_text = small_font.render("Press enter to begin", True, white)
-    screen.blit(title_text, (800 // 2 - title_text.get_width() // 2, 200))
-    screen.blit(start_text, (800 // 2 - start_text.get_width() // 2, 300))  
+    screen.blit(start_background_image,(0,0))
     pygame.display.flip()
-
+    
 def show_gameover(): #game over skärm
     screen.fill(black)
     gameover_text = font.render("Game Over!", True, red)
@@ -143,6 +164,9 @@ def lives(hearts):   #Life counter and damage calculater
         life_text = small_font.render(f"Lives {hearts}", True, white)
         screen.blit(life_text, (700,30))
 
+
+
+
 # Huvudloop
 while True:
     for event in pygame.event.get():
@@ -151,6 +175,7 @@ while True:
             sys.exit()
         elif startmenu and event.type == pygame.KEYDOWN and event.key == pygame.K_RETURN: #startmeny spelet startar vid enter
             startmenu = False
+            play_music(level)
         elif gameover and event.type == pygame.KEYDOWN and event.key == pygame.K_RETURN: #gameover spelet startar om vid enter
             if event.key == pygame.K_RETURN: #reset spelet
                 circle_x, circle_y = 40, 450
@@ -159,13 +184,25 @@ while True:
                 level = 1
                 hearts = 3
                 gameover = False
+                gameover_music_played = False  
             elif event.key == pygame.K_RETURN:
                 pygame.quit()
                 sys.exit()
+    
+    if hearts <= 0 and not gameover:  
+        gameover = True
+        gameover_music_played = False
+    
     if startmenu:
         show_start_menu()
         continue
     elif gameover:
+        if not gameover_music_played:
+            pygame.mixer.music.stop()   
+            play_music("gameover")      
+            gameover_music_played = True
+            level1_music = False
+            
         level_start = False
         fiende_speed_x = 0
         circle_speed_x = 10
@@ -176,6 +213,7 @@ while True:
         background_image = pygame.transform.scale(background_image, (800, 600))
         show_gameover()
         continue  
+        
 
     # Tangenttryckningar
     keys = pygame.key.get_pressed()
@@ -187,30 +225,31 @@ while True:
     movment_groundpound = False
 
     #x-led rörelse
-    if keys[pygame.K_LEFT]:
-        circle_x -= circle_speed_x
-        movment = True
-        movment_left = True
-    if keys[pygame.K_RIGHT]:
-        circle_x += circle_speed_x
-        movment = True
-        movment_right = True
+    if not movment_lock:
+        if keys[pygame.K_LEFT]:
+            circle_x -= circle_speed_x
+            movment = True
+            movment_left = True
+        if keys[pygame.K_RIGHT]:
+            circle_x += circle_speed_x
+            movment = True
+            movment_right = True
 
-    # Hopp och dubbelhopp
-    if keys[pygame.K_UP] and on_ground:
-        circle_y -= 5
-        circle_speed_y = jump_strength
-        on_ground = False
-        doublejump = True
-        movment = True
-        movment_up = True
+         # Hopp och dubbelhopp
+        if keys[pygame.K_UP] and on_ground:
+            circle_y -= 5
+            circle_speed_y = jump_strength
+            on_ground = False
+            doublejump = True
+            movment = True
+            movment_up = True
         
     
-    elif keys[pygame.K_UP] and doublejump and circle_y < 500:
-        circle_speed_y = jump_strength
-        doublejump = False
-        movment = True
-        movment_up = True
+        elif keys[pygame.K_UP] and doublejump and circle_y < 500:
+            circle_speed_y = jump_strength
+            doublejump = False
+            movment = True
+            movment_up = True
 
     # snabbt ner
     if keys[pygame.K_DOWN] and on_ground == False and onplatform== False:
@@ -247,16 +286,16 @@ while True:
         circle_x = 0
         circle_y = 560
         level += 1
-    if level == 4 and (circle_x >= 740 and (240<=circle_y<=300)):
+        
+    if level == 4 and (circle_x >= 740 and (circle_y >= 350 or circle_y <=300)):
         circle_x = 0
         circle_y = 560
         level +=1
-    if level == 5 and ((380<=circle_x<=440) and (290<=circle_y<=350)):
+        
+    if level == 5 and circle_x >= 740 and circle_y >= 570:
         level +=1
 
-    #Låt detta stå kvar
-    if level == 2:
-        fiende_speed_x = 10
+   
 
     # Fiende rörelse i x led
     if fiende_speed_y > 0:
@@ -293,10 +332,16 @@ while True:
    
 
 ##Hinder
-
+    
+        
     #Skapar ett hinder och ger den en hitbox
     obstacles = []
     if level == 1: #level 1 hinder
+        
+        if not level1_music:
+            play_music(level)
+            level1_music,level2_music,level3_music = True, False, False
+            
         
         screen.blit(pipe_image,(cube_x,cube_y))   #Röret för nästa level
        
@@ -359,12 +404,16 @@ while True:
         fiende_x, fiende_y = -420, 530
         background_image = pygame.image.load("cave.jpg")
         background_image = pygame.transform.scale(background_image, (800, 700))
-        
         level_start = True
+        play_music(level)
     
-    
+        
     if level == 2:
         screen.blit(fiende2_image, (fiende2_X, fiende2_y))
+        
+        fiende_speed_x = 10
+       
+        
         fiende_image = pygame.image.load("bulletbill.png")
         fiende_image = pygame.transform.scale(fiende_image, (105, 85)) 
         spik_x, spik_y, spik_x_storlek = 400, 160, 20
@@ -454,14 +503,20 @@ while True:
         screen.blit(pipe_image_rotated,(cube_x,cube_y))
 
 
-    if level == 3 and level_start:
+    
+    
+    
+    if level == 3 and not boss_exist:
 
         background_image = pygame.image.load("boss_background.JPG")
         background_image = pygame.transform.scale(background_image, (800, 600))
         level_start = False
         fiende_x, fiende_y = 900,900
         fiende2_x,fiende2_y = 900,900
-    
+        if not boss_talk1:
+            sound_effects["boss_talk1"].play()
+            pygame.mixer.music.stop()
+            boss_talk1 = True
     
     if level == 3:
 
@@ -483,20 +538,51 @@ while True:
                 for y in range(obstacle.y, obstacle.y + obstacle.height, stone.get_height()):
                     screen.blit(stone, (x, y))
 
-        
+        if boss_encountered:
+            boss_x,boss_y = 550,100
+
+        #Kollar om bossen ska spawna
         if not boss_exist:
+            spawn_boss(screen)
             boss_exist = True
+            start_ticks = pygame.time.get_ticks()  #Börjar en räkning
+
+        #Räknar ut tiden sen bossen spawnade
+        boss_delay = (pygame.time.get_ticks() - start_ticks) / 1000  
 
         
-        spawn_boss(screen), boss_movment(), boss_attack(screen,circle_x,circle_y,circle_radius)
-        boss_collision = boss_collaterate(circle_x, circle_y)
-        boss_attack_collision = boss_attack(screen,circle_x,circle_y,circle_radius)
-        if boss_collision or boss_attack_collision and not tagen_skada:
-            tagen_skada = True
-            gameover = True
+        if boss_exist and (boss_delay < 7) and (not boss_encountered): 
+            spawn_boss(screen)  #Visar bossen men låter den inte röra/attackera
+            movment_lock = True
+            if boss_encountered and not level3_music:
+                play_music(level)
+                level3_music = True
+        
+        elif (boss_exist and boss_delay >= 7) or boss_encountered: 
+            #Låter bossen attackera och röra sig efter det bestämda tidsomloppet
+            movment_lock, boss_encountered = False, True
+            boss_movment(screen, level,boss_exist)
+            boss_attack(screen, circle_x, circle_y, circle_radius)
+            boss_collision = boss_collaterate(circle_x, circle_y)
+            boss_attack_collision = boss_attack(screen, circle_x, circle_y, circle_radius)
+            if boss_encountered and not level3_music:
+                play_music(level)
+                level3_music = True
+        
+            
+            if (boss_collision or boss_attack_collision) and not tagen_skada:
+                
+                tagen_skada = True
+                gameover = True
+        
+                boss_x, boss_y = 550, 150  
+                boss_exist = False 
+                
+        
         screen.blit(proceed_button,(98,70))
 
     if level == 4:
+        boss_reset = False
         obje1 = pygame.Rect(125,470,100,20)   #Första platform vänster
         obje2 = pygame.Rect(350,100,20,400)   #Mitten vägg  
         obje3 = pygame.Rect(600,300,180,20)   #Målplatform höger
@@ -511,13 +597,15 @@ while True:
                 for y in range(obstacle.y, obstacle.y + obstacle.height, stone.get_height()):
                     screen.blit(stone, (x, y))
 
-        spawn_boss(screen), boss_movment(), boss_attack(screen,circle_x,circle_y,circle_radius)
+        spawn_boss(screen), boss_movment(screen, level,boss_exist), boss_attack(screen,circle_x,circle_y,circle_radius)
         boss_collision = boss_collaterate(circle_x, circle_y)
         boss_attack_collision = boss_attack(screen,circle_x,circle_y,circle_radius)
         if boss_collision or boss_attack_collision and not tagen_skada:
             tagen_skada = True
             gameover = True
         screen.blit(proceed_button,(750,270))
+
+    
 
     if level == 5:
         objek1 = pygame.Rect(100,480,30,20) #Vänster sida, nerifrån och upp
@@ -543,14 +631,19 @@ while True:
                 for y in range(obstacle.y, obstacle.y + obstacle.height, stone.get_height()):
                     screen.blit(stone, (x, y))
 
-        spawn_boss(screen), boss_movment(), boss_attack(screen,circle_x,circle_y,circle_radius)
+        spawn_boss(screen), boss_movment(screen, level,boss_exist), boss_attack(screen,circle_x,circle_y,circle_radius)
         boss_collision = boss_collaterate(circle_x, circle_y)
         boss_attack_collision = boss_attack(screen,circle_x,circle_y,circle_radius)
         if boss_collision or boss_attack_collision and not tagen_skada:
             tagen_skada = True
             gameover = True
         screen.blit(proceed_button,(400,320))
+        
+        
+       
    
+    
+    
     #"Animation" för mario
     if not movment and on_ground:#Om spelaren står stilla
         screen.blit(mario_still,(circle_x-(circle_radius -2),circle_y-(circle_radius +3)))
@@ -559,15 +652,24 @@ while True:
         screen.blit(mario_groundpound,(circle_x-(circle_radius +28),circle_y-(circle_radius +5))) 
     elif movment_right and not on_ground: #Om spelaren hoppar till höger
         screen.blit(mario_jumping_right,(circle_x-(circle_radius -2),circle_y-(circle_radius +3)))
+        if not jumping:
+            sound_effects["jump"].stop()
+            sound_effects["jump"].play()
+            jumping = True
     elif movment_left and not on_ground: #Om spelaren hopper til vänster
         screen.blit(mario_jumping_left,(circle_x-(circle_radius -2),circle_y-(circle_radius +3)))
+        if not jumping:
+            sound_effects["jump"].stop()
+            sound_effects["jump"].play()
+            jumping = True
     elif not on_ground: #Om spelare bara är i luften
        screen.blit(mario_jumping_right,(circle_x-(circle_radius -2),circle_y-(circle_radius +3)))
     elif movment_right and on_ground:  #Om spelaren springer till höger 
         screen.blit(mario_running_right,(circle_x-(circle_radius -2),circle_y-(circle_radius +3)))
     elif movment_left and on_ground:   #Om spelaren springer till vänster
         screen.blit(mario_running_left,(circle_x-(circle_radius -2),circle_y-(circle_radius +3))) 
-    
+    if on_ground or onplatform:
+        jumping = False
     
     
     #Kollision
