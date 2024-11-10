@@ -2,38 +2,56 @@ import pygame
 import math
 import random
 
+boss_reset = False
+
 boss_width = 200
 boss_height = 200
 boss_hitpoints = 3
-boss_x, boss_y = random.randint(400,600) , 300 #Ger lite random startpos och hastighet för att ge bossen olika "pattern"
-boss_speed_x = -3.5       
-boss_speed_y = random.uniform(-3,-2)
+boss_x, boss_y = random.randint(500,600) , 100 #Ger lite random startpos och hastighet för att ge bossen olika "pattern"
+boss_speed_x = -3      
+boss_speed_y = random.uniform(-2.5,-2)
 
 #Attack
-dvd_radius = 25  #Större hitbox leder till buggigare hitscan  (20-30 rekomenderas)
+dvd_radius = 25 #Större hitbox leder till buggigare hitscan  (20-30 rekomenderas)
 attack_freq = 30   #Lägre siffor = mer attacker. (1/attack_freq  per frame att attack sker, 30-75 rekomenderas) 
 
 
 boss = pygame.image.load("boss.PNG")
+arm = pygame.image.load("arm.PNG")
+scaled_arm = pygame.transform.scale(arm,(50,50))
+scaled_boss = pygame.transform.scale(boss, (boss_width, boss_height))
 DVD = pygame.image.load("dvd.PNG")
-arm = pygame.image.load("arm.PNG")   
+   
 
 # Funktion för att rita bossen
 def spawn_boss(screen):
     if boss is not None:
-        scaled_arm = pygame.transform.scale(arm,(50,50))
-        scaled_boss = pygame.transform.scale(boss, (boss_width, boss_height))
         screen.blit(scaled_boss, (boss_x, boss_y))
         screen.blit(scaled_arm, (boss_x-38,boss_y+30))
+    
 
-def boss_movment():
+
+def boss_movment(screen,level,boss_exist):
     global boss_x,boss_y, boss_speed_x, boss_speed_y
-    boss_x += boss_speed_x
-    boss_y += boss_speed_y
-    if boss_x <=0 or boss_x >= 800-boss_width:
-         boss_speed_x *=-1
-    if boss_y > 650-boss_height or boss_y < 150-boss_height:
-        boss_speed_y *=-1
+    if level == 3:
+        screen.blit(scaled_boss, (boss_x, boss_y))
+        screen.blit(scaled_arm, (boss_x-38,boss_y+30))
+    elif level == 4:
+        screen.blit(scaled_boss, (boss_x, boss_y))
+        screen.blit(scaled_arm, (boss_x-38,boss_y+30))
+    elif level == 5:
+        screen.blit(scaled_boss, (boss_x, boss_y))
+        screen.blit(scaled_arm, (boss_x-38,boss_y+30))
+    
+    
+    if  boss_exist: 
+        boss_x += boss_speed_x
+    
+        boss_y += boss_speed_y
+        if boss_x <=0 or boss_x >= 800-boss_width:
+            boss_speed_x *=-1
+        if boss_y > 650-boss_height or boss_y < 150-boss_height:
+            boss_speed_y *=-1
 
 def boss_collaterate(circle_x, circle_y,):
     global boss_x, boss_y, boss_speed_x
@@ -41,9 +59,6 @@ def boss_collaterate(circle_x, circle_y,):
         return True
     return False
     
-
-
-
 
 DvD_projectiles = []
 
@@ -62,10 +77,8 @@ def boss_attack(screen,circle_x,circle_y,circle_radius):
 
         DvD_projectiles.append({'x': boss_x - 38,'y': boss_y + 30,'speed_x': speed_x,'speed_y': speed_y})
 
-    
     for dvd in DvD_projectiles[:]:
         
-
         dvd['x'] += dvd['speed_x']
         dvd['y'] += dvd['speed_y']
         screen.blit(pygame.transform.scale(DVD, (dvd_radius, dvd_radius)), (dvd['x'], dvd['y']))
@@ -76,7 +89,6 @@ def boss_attack(screen,circle_x,circle_y,circle_radius):
         if distance <= circle_radius + dvd_radius - (dvd_radius/1.5): #om avståndet är mindre än de sammanlagda radiusen är det en kollision
             return True                                 #Tar bort lite som en finsjustering då "hitboxen" blev för stor annars
 
-        
         if dvd['x'] < -50 or dvd['x'] > 850 or  dvd['y'] < -50 or dvd['y'] > 650:
              DvD_projectiles.remove(dvd)
         
