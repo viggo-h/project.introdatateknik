@@ -16,18 +16,21 @@ dvd_radius = 25 #Större hitbox leder till buggigare hitscan  (20-30 rekomendera
 attack_freq = 30   #Lägre siffor = mer attacker. (1/attack_freq  per frame att attack sker, 30-75 rekomenderas) 
 
 
-boss = pygame.image.load("boss.PNG")
-arm = pygame.image.load("arm.PNG")
-scaled_arm = pygame.transform.scale(arm,(50,50))
-scaled_boss = pygame.transform.scale(boss, (boss_width, boss_height))
+def load_and_scale_image(file_path, size):
+    image = pygame.image.load(file_path)   # Load the image
+    scaled_image = pygame.transform.scale(image, size)  # Scale the image
+    return scaled_image
+
+
+scaled_arm = load_and_scale_image("arm.PNG", (50,50))
+scaled_boss = load_and_scale_image("boss.PNG", (boss_width, boss_height))
 DVD = pygame.image.load("dvd.PNG")
    
 
 # Funktion för att rita bossen
 def spawn_boss(screen):
-    if boss is not None:
-        screen.blit(scaled_boss, (boss_x, boss_y))
-        screen.blit(scaled_arm, (boss_x-38,boss_y+30))
+    screen.blit(scaled_boss, (boss_x, boss_y))
+    screen.blit(scaled_arm, (boss_x-38,boss_y+30))
     
 
 
