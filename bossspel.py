@@ -5,9 +5,9 @@ import sys
 pygame.init()
 
 
-from boss2 import spawn_boss,boss_movment, boss_collaterate, boss_attack
+from boss import spawn_boss,boss_movment, boss_collaterate, boss_attack
 boss_exist = False
-fiende_kollision = False
+
 
 # Skapa fönstret
 screen = pygame.display.set_mode((800, 600))
@@ -27,11 +27,14 @@ mario_jumping_left = pygame.transform.scale(mario_jumping_left, (75,83))
 mario_groundpound = pygame.image.load("mario_groundpound.PNG")
 mario_groundpound = pygame.transform.scale(mario_groundpound, (120,85))
 
+#Röd knapp bild
+proceed_button = pygame.image.load("redbutton.png")
+proceed_button = pygame.transform.scale(proceed_button,(30,30))
 # Bakgrundsbild
 background_image = pygame.image.load("background.png")
 background_image = pygame.transform.scale(background_image, (800, 600))  
-boss_background = pygame.image.load("boss_background.JPG")
-boss_background = pygame.transform.scale(boss_background, (800, 600))
+start_background_image = pygame.image.load("Arcade Gamer.PNG")
+start_background_image = pygame.transform.scale(start_background_image, (800,600))
 
 #Bilder för hinder
 brick_wall = pygame.image.load("brick_wall.jpg")
@@ -63,6 +66,7 @@ jump_strength = -10
 gravity = 0.5
 on_ground = False
 doublejump = False  
+movment_lock = False
 
 #Liv och skada
 hearts = 3
@@ -101,7 +105,7 @@ font = pygame.font.Font(None, 74)
 small_font = pygame.font.Font(None, 36)
 
 #level osv
-level = 3 
+level = 1  
 level_start = False
 startmenu = True
 gameover = False
@@ -118,13 +122,9 @@ lava = pygame.Rect(lava_x, lava_y, lava_width, lava_height)
 
 
 def show_start_menu(): #startskärm
-    screen.fill(black)
-    title_text = font.render("Welcome to the Game!", True, white)
-    start_text = small_font.render("Press enter to begin", True, white)
-    screen.blit(title_text, (800 // 2 - title_text.get_width() // 2, 200))
-    screen.blit(start_text, (800 // 2 - start_text.get_width() // 2, 300))  
+    screen.blit(start_background_image,(0,0))
     pygame.display.flip()
-
+    
 def show_gameover(): #game over skärm
     screen.fill(black)
     gameover_text = font.render("Game Over!", True, red)
@@ -155,9 +155,10 @@ while True:
                 circle_x, circle_y = 40, 450
                 fiende_x, fiende_y = 540, 50
                 fiende_speed_y = 5
-                level = 3
+                level = 1
                 hearts = 3
                 gameover = False
+                  
             elif event.key == pygame.K_RETURN:
                 pygame.quit()
                 sys.exit()
@@ -168,6 +169,7 @@ while True:
         level_start = False
         fiende_speed_x = 0
         circle_speed_x = 10
+        fiende2_X, fiende2_y = 320, 530
         fiende_image = pygame.image.load("Thwomp.gif")
         fiende_image = pygame.transform.scale(fiende_image, (80, 80))
         background_image = pygame.image.load("background.png")
@@ -185,30 +187,31 @@ while True:
     movment_groundpound = False
 
     #x-led rörelse
-    if keys[pygame.K_LEFT]:
-        circle_x -= circle_speed_x
-        movment = True
-        movment_left = True
-    if keys[pygame.K_RIGHT]:
-        circle_x += circle_speed_x
-        movment = True
-        movment_right = True
+    if not movment_lock:
+        if keys[pygame.K_LEFT]:
+            circle_x -= circle_speed_x
+            movment = True
+            movment_left = True
+        if keys[pygame.K_RIGHT]:
+            circle_x += circle_speed_x
+            movment = True
+            movment_right = True
 
-    # Hopp och dubbelhopp
-    if keys[pygame.K_UP] and on_ground:
-        circle_y -= 5
-        circle_speed_y = jump_strength
-        on_ground = False
-        doublejump = True
-        movment = True
-        movment_up = True
+         # Hopp och dubbelhopp
+        if keys[pygame.K_UP] and on_ground:
+            circle_y -= 5
+            circle_speed_y = jump_strength
+            on_ground = False
+            doublejump = True
+            movment = True
+            movment_up = True
         
     
-    elif keys[pygame.K_UP] and doublejump and circle_y < 500:
-        circle_speed_y = jump_strength
-        doublejump = False
-        movment = True
-        movment_up = True
+        elif keys[pygame.K_UP] and doublejump and circle_y < 500:
+            circle_speed_y = jump_strength
+            doublejump = False
+            movment = True
+            movment_up = True
 
     # snabbt ner
     if keys[pygame.K_DOWN] and on_ground == False and onplatform== False:
@@ -217,10 +220,7 @@ while True:
         movment = True
         movment_groundpound = True
     else:
-        gravity = 0.5
-
-    
-    
+        gravity = 0.5    
     
     # Gravitation och vertikal rörelse
     if onplatform == False:
@@ -244,6 +244,18 @@ while True:
         fiende_y = 520
         fiende_speed_x = 10
         level += 1
+    if level == 3 and circle_x <= 140 and circle_y <100:
+        circle_x = 0
+        circle_y = 560
+        level += 1
+        
+    if level == 4 and (circle_x >= 740 and (circle_y >= 350 or circle_y <=300)):
+        circle_x = 0
+        circle_y = 560
+        level +=1
+        
+    if level == 5 and circle_x >= 740 and circle_y >= 570:
+        level +=1
 
     #Låt detta stå kvar
     if level == 2:
@@ -255,8 +267,7 @@ while True:
     if fiende_speed_y < 0:
         fiende_y += fiende_speed_y
         
-    if level == 1 and fiende_y >= 0 or fiende_y <= 800:
-        fiende_y = 800
+    if level == 1 and fiende_y >= 500 or fiende_y <= 0:
         if fiende_speed_y == 8:
             fiende_speed_y = 0
         else:
@@ -272,13 +283,9 @@ while True:
     
 
     #Uppdatera skärmen
-    if level ==1:
-        screen.blit(background_image, (0, 0))
+    screen.blit(background_image, (0, 0))
     screen.blit(fiende_image,(fiende_x,fiende_y))
     
-    
-    if level == 2:
-        screen.blit(fiende2_image, (fiende2_X, fiende2_y))
     
     #level
     
@@ -355,8 +362,6 @@ while True:
         fiende_x, fiende_y = -420, 530
         background_image = pygame.image.load("cave.jpg")
         background_image = pygame.transform.scale(background_image, (800, 700))
-        
-       
         
         level_start = True
     
@@ -453,30 +458,111 @@ while True:
 
 
     if level == 3 and level_start:
-        
+
+        background_image = pygame.image.load("boss_background.JPG")
+        background_image = pygame.transform.scale(background_image, (800, 600))
         level_start = False
         fiende_x, fiende_y = 900,900
         fiende2_x,fiende2_y = 900,900
     
     
     if level == 3:
-        screen.blit(boss_background,(0,0))
+
         #Hinder och annat för level 3 ska vara här
-        
+        obj1 = pygame.Rect(120,440,130,20) #Platform nere vänster
+        obj2 = pygame.Rect(680,400,100,20) #Platform nere höger
+        obj3 = pygame.Rect(300,320,80,20 ) #Över vänster
+        obj4 = pygame.Rect(610,100,90,20)  #Uppe höger
+        obj5 = pygame.Rect(100,100,90,20)  #Uppe vänster
+        obj6 = pygame.Rect(500,220,80,20)  #Näst högst upp höger
+        obj7 = pygame.Rect(560,240,40,20)  #Mittersta trappsteget
+        obj8 = pygame.Rect(580,260,40,20)  #Mittersta 2 trappsteget
+        obj9 = pygame.Rect(600,280,40,20)  #Understa trappsteget
+
+        obstacles = [obj1,obj2,obj3,obj4,obj5,obj6,obj7,obj8,obj9]
        
-        
-        if not boss_exist:
-            boss_exist = True
+        for obstacle in obstacles:
+            for x in range(obstacle.x, obstacle.x + obstacle.width, stone.get_width()):
+                for y in range(obstacle.y, obstacle.y + obstacle.height, stone.get_height()):
+                    screen.blit(stone, (x, y))
 
         
-        spawn_boss(screen), boss_movment(), boss_attack(screen,circle_x,circle_y,circle_radius)
+        #Kollar om bossen ska spawna
+        if not boss_exist:
+            spawn_boss(screen)
+            boss_exist = True  
+            start_ticks = pygame.time.get_ticks()  #Börjar en räkning
+
+        #Räknar ut tiden sen bossen spawnade
+        boss_delay = (pygame.time.get_ticks() - start_ticks) / 1000  
+
+        
+        if boss_exist and boss_delay < 3: 
+            spawn_boss(screen)  #Visar bossen men låter den inte röra/attackera
+            movment_lock = True
+        elif boss_exist and boss_delay >= 3: 
+            #Låter bossen attackera och röra sig efter det bestämda tidsomloppet
+            movment_lock = False
+            boss_movment(screen, level,boss_exist)
+            boss_attack(screen, circle_x, circle_y, circle_radius)
+            boss_collision = boss_collaterate(circle_x, circle_y)
+            boss_attack_collision = boss_attack(screen, circle_x, circle_y, circle_radius)
+        
+        
+            
+            if (boss_collision or boss_attack_collision) and not tagen_skada:
+                
+                tagen_skada = True
+                gameover = True
+        
+                boss_x, boss_y = 550, 150  
+                boss_exist = False 
+                
+        
+        screen.blit(proceed_button,(98,70))
+
+    if level == 4:
+        boss_reset = False
+        obje1 = pygame.Rect(125,470,100,20)   #Första platform vänster
+        obje2 = pygame.Rect(350,100,20,400)   #Mitten vägg  
+        obje3 = pygame.Rect(600,300,180,20)   #Målplatform höger
+        obje4 = pygame.Rect(125,350,100,20)   #Andra platform vänster
+        obje5 = pygame.Rect(125,230,100,20)   #Tredje platform vänster
+        obje6 = pygame.Rect(125,115,100,20)   #Fjärde platformen vänster
+
+        obstacles =[obje1,obje2,obje3,obje4,obje5,obje6]
+
+        for obstacle in obstacles:
+            for x in range(obstacle.x, obstacle.x + obstacle.width, stone.get_width()):
+                for y in range(obstacle.y, obstacle.y + obstacle.height, stone.get_height()):
+                    screen.blit(stone, (x, y))
+
+        spawn_boss(screen), boss_movment(screen, level,boss_exist), boss_attack(screen,circle_x,circle_y,circle_radius)
         boss_collision = boss_collaterate(circle_x, circle_y)
         boss_attack_collision = boss_attack(screen,circle_x,circle_y,circle_radius)
         if boss_collision or boss_attack_collision and not tagen_skada:
             tagen_skada = True
             gameover = True
+        screen.blit(proceed_button,(750,270))
 
+    if level == 5:
 
+        obstacles=[]
+        for obstacle in obstacles:
+            for x in range(obstacle.x, obstacle.x + obstacle.width, stone.get_width()):
+                for y in range(obstacle.y, obstacle.y + obstacle.height, stone.get_height()):
+                    screen.blit(stone, (x, y))
+
+        spawn_boss(screen), boss_movment(scree,level,boss_exist), boss_attack(screen,circle_x,circle_y,circle_radius)
+        boss_collision = boss_collaterate(circle_x, circle_y)
+        boss_attack_collision = boss_attack(screen,circle_x,circle_y,circle_radius)
+        if boss_collision or boss_attack_collision and not tagen_skada:
+            tagen_skada = True
+            gameover = True
+        screen.blit(proceed_button,(750,580))
+   
+    
+    
     #"Animation" för mario
     if not movment and on_ground:#Om spelaren står stilla
         screen.blit(mario_still,(circle_x-(circle_radius -2),circle_y-(circle_radius +3)))
