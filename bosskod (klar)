@@ -23,13 +23,15 @@ def load_and_scale_image(file_path, size):
 
 
 scaled_arm = load_and_scale_image("arm.PNG", (50,50))
-scaled_boss = load_and_scale_image("boss.PNG", (boss_width, boss_height))
+scaled_boss1 = load_and_scale_image("boss.PNG", (boss_width, boss_height))
+scaled_boss2 = load_and_scale_image("boss_phase2.PNG", (boss_width, boss_height))
+scaled_boss3 = load_and_scale_image("boss_phase3.PNG", (boss_width, boss_height))
 DVD = pygame.image.load("dvd.PNG")
    
 
 # Funktion för att rita bossen
 def spawn_boss(screen):
-    screen.blit(scaled_boss, (boss_x, boss_y))
+    screen.blit(scaled_boss1, (boss_x, boss_y))
     screen.blit(scaled_arm, (boss_x-38,boss_y+30))
     
 
@@ -37,13 +39,13 @@ def spawn_boss(screen):
 def boss_movment(screen,level,boss_exist):
     global boss_x,boss_y, boss_speed_x, boss_speed_y
     if level == 3:
-        screen.blit(scaled_boss, (boss_x, boss_y))
+        screen.blit(scaled_boss1, (boss_x, boss_y))
         screen.blit(scaled_arm, (boss_x-38,boss_y+30))
     elif level == 4:
-        screen.blit(scaled_boss, (boss_x, boss_y))
+        screen.blit(scaled_boss2, (boss_x, boss_y))
         screen.blit(scaled_arm, (boss_x-38,boss_y+30))
     elif level == 5:
-        screen.blit(scaled_boss, (boss_x, boss_y))
+        screen.blit(scaled_boss3, (boss_x, boss_y))
         screen.blit(scaled_arm, (boss_x-38,boss_y+30))
     
     
