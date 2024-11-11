@@ -1,4 +1,5 @@
 
+
 import pygame
 import random
 import sys
@@ -37,6 +38,8 @@ start_background_image = pygame.image.load("Arcade Gamer.PNG")
 start_background_image = pygame.transform.scale(start_background_image, (800,600))
 victory_background_image = pygame.image.load("victoryscreen.png")
 victory_background_image = pygame.transform.scale(victory_background_image, (800,600))
+brick = pygame.image.load("brick.JPG")
+brick = pygame.transform.scale(brick, (40,40))
 
 #Bilder för hinder
 brick_wall = pygame.image.load("brick_wall.jpg")
@@ -48,9 +51,12 @@ stone = pygame.transform.scale(stone, (10,10))
 #Ljudeeffekter
 sound_effects = {
     "jump": pygame.mixer.Sound("mario_jump_soundsfx.mp3"),
-    #"die": , 
+    "die" : pygame.mixer.Sound("death_sound.mp3"), 
+    "button": pygame.mixer.Sound("button_press.mp3"),
     "boss_talk1": pygame.mixer.Sound("boss_monologue1.mp3"),
+    "boss_take_dmg":pygame.mixer.Sound("boss_taking_dmg.mp3"),
     "victory": pygame.mixer.Sound("victory_music.mp3"),
+    "firework": pygame.mixer.Sound("victory_firework.mp3"),
 }   
 #Musik
 music_tracks = {
@@ -68,7 +74,7 @@ def play_music(track_key):
         pygame.mixer.music.play(-1)
 
 play_music("start_menu") 
-gameover_music_played, level1_music, level2_music, level3_music, level4_music,level5_music,boss_talk1,boss_encountered = False,False,False,False,False,False,False,False
+
 
 
 # Färger 
@@ -143,7 +149,36 @@ lava_width = 250
 lava_height = 20
 lava = pygame.Rect(lava_x, lava_y, lava_width, lava_height)
 
+level1_music, level2_music, level3_music,gameover_music_played = False, False, False, False
+boss_talk1, boss_talk2, boss_talk3,boss_encountered = False, False, False,False
+def reset_game():
+    global circle_x, circle_y, fiende_x, fiende_y, fiende_speed_y,fiende_speed_x, fiende_image,fiende_storlek
+    global level, hearts, gameover, boss_exist, boss_encountered, level_start
+    global level1_music, level2_music, level3_music, gameover_music_played, boss_talk1, boss_talk2, boss_talk3
+    global start_background_image, background_image
 
+    
+    circle_x, circle_y = 40, 450
+    fiende_x, fiende_y = 540, 50
+    fiende_speed_x, fiende_speed_y,fiende_storlek = 0, 5, 80
+    fiende_image = pygame.image.load("Thwomp.gif")
+    fiende_image = pygame.transform.scale(fiende_image, (80, 80))
+    
+    level = 1
+    hearts = 3
+    gameover = False
+    boss_exist = False
+    boss_encountered = False
+    level_start = False
+    
+    level1_music, level2_music, level3_music, gameover_music_played = False, False, False, False
+    boss_talk1, boss_talk2, boss_talk3 = False, False, False
+    pygame.mixer.stop()
+    
+    background_image = pygame.image.load("background.png")
+    background_image = pygame.transform.scale(background_image, (800, 600))
+
+    play_music(level)
 
 def show_start_menu(): #startskärm
     screen.blit(start_background_image,(0,0))
@@ -202,7 +237,7 @@ class ObstaclePainter:          #To make obstacles
                     self.screen.blit(self.stone, (x, y))
 
 obstacle_painter = ObstaclePainter(screen,stone)
-
+obstacle_painter2 = ObstaclePainter(screen, brick)
 # Huvudloop
 while True:
     for event in pygame.event.get():
@@ -214,13 +249,13 @@ while True:
             play_music(level)
         elif gameover and event.type == pygame.KEYDOWN and event.key == pygame.K_RETURN: #gameover spelet startar om vid enter
             if event.key == pygame.K_RETURN: #reset spelet
-                circle_x, circle_y = 40, 450
-                fiende_x, fiende_y = 540, 50
-                fiende_speed_y = 5
-                level = 1
-                hearts = 3
-                gameover = False
-                gameover_music_played = False  
+                if level == 6:
+                    reset_game()
+                    startmenu = False
+                else:
+                    reset_game()
+                
+
             elif event.key == pygame.K_RETURN:
                 pygame.quit()
                 sys.exit()
@@ -235,7 +270,11 @@ while True:
     elif gameover:
         if not gameover_music_played:
             pygame.mixer.music.stop()   
-            play_music("gameover")      
+            if level < 6 :
+                play_music("gameover")      
+            else:
+                sound_effects["victory"].play()
+                sound_effects["firework"].play()
             gameover_music_played = True
             level1_music = False
         if level < 6:
@@ -281,7 +320,10 @@ while True:
             doublejump = True
             movment = True
             movment_up = True
-        
+            if not jumping:
+                sound_effects["jump"].stop()
+                sound_effects["jump"].play()
+                jumping = True
     
         elif keys[pygame.K_UP] and doublejump and circle_y < 500:
             circle_speed_y = jump_strength
@@ -321,14 +363,17 @@ while True:
         fiende_speed_x = 10
         level += 1
     if level == 3 and circle_x <= 140 and circle_y <100:
+        sound_effects["button"].play()
         circle_x = 0
         circle_y = 560
         level += 1
     if level == 4 and (circle_x >= 740 and (240<=circle_y<=300)):
+        sound_effects["button"].play()
         circle_x = 0
         circle_y = 560
         level +=1
     if level == 5 and ((380<=circle_x<=440) and (290<=circle_y<=350)):
+        sound_effects["button"].play()
         level +=1
     if level == 6:
         gameover = True
@@ -381,14 +426,16 @@ while True:
         
         screen.blit(pipe_image,(cube_x,cube_y))   #Röret för nästa level
        
-        obstacle1 = pygame.Rect(200, 425, 100., 50)
+        
+        obstacle1 = pygame.Rect(200, 420, 100, 40)
         obstacle2 = pygame.Rect(0, 300, 200, 50)
         obstacle3 = pygame.Rect(365, 200, 75, 50)
         obstacle4 = pygame.Rect(625, 150, 80, 450)
-        obstacle5 = pygame.Rect(175, 300, 40, 175)
+        obstacle5 = pygame.Rect(175, 300, 40, 150)
         obstacles =  [obstacle1, obstacle2, obstacle3, obstacle4, obstacle5]
-        for obstacle in obstacles: 
-            pygame.draw.rect(screen, brown, obstacle)
+         
+        obstacle_painter2.render(obstacles)
+
         
         player_rect = pygame.Rect(circle_x, circle_y, circle_radius*1.25, circle_radius*1.25)
         fiende_rect = pygame.Rect(fiende_x, fiende_y, fiende_storlek, fiende_storlek)
@@ -399,6 +446,7 @@ while True:
         player_rect = pygame.Rect(circle_x, circle_y, circle_radius, circle_radius)
         if player_rect.colliderect(lava):
             hearts -= 1
+            sound_effects["die"].play()
             if hearts <= 0:
                 gameover = True
             else:
@@ -425,6 +473,7 @@ while True:
         # Spelaren tar skada om den krockar från sidan eller underifrån
             fiende_speed_y *=-1  # Fienden byter riktning
             hearts -= 1
+            sound_effects["die"].play()
             circle_x, circle_y = 40, 400
             tagen_skada = True
             if hearts == 0:
@@ -437,21 +486,23 @@ while True:
     if level ==2 and not level_start: #Ge karatären en specifik startpunkt för map-building
         fiende_speed_y = 0
         circle_x, circle_y = 100, 410
-        fiende_x, fiende_y = -420, 530
+        fiende_x, fiende_y = -30, 530
+        fiende2_X, fiende2_y = 320, 530
         background_image = pygame.image.load("cave.jpg")
         background_image = pygame.transform.scale(background_image, (800, 700))
+        fiende_image = pygame.image.load("bulletbill.png")
+        fiende_image = pygame.transform.scale(fiende_image, (105, 85)) 
         level_start = True
         play_music(level)
     
     #Level 2
     if level == 2:
         screen.blit(fiende2_image, (fiende2_X, fiende2_y))
-        
+        screen.blit(fiende_image, (fiende_x, fiende_y))
         fiende_speed_x = 10
        
         
-        fiende_image = pygame.image.load("bulletbill.png")
-        fiende_image = pygame.transform.scale(fiende_image, (105, 85)) 
+        
         spik_x, spik_y, spik_x_storlek = 400, 160, 20
         spik_NHX,spik_NHY,spik_NHsize = 745,420,30
         spik_gropX, spik_gropY,spik_gropSize = 440, 250, 150
@@ -481,6 +532,7 @@ while True:
         if kollision == False:   
             if fiende_kollisionlv2 and not tagen_skada:       
                 hearts -= 1
+                sound_effects["die"].play()
                 circle_speed_x, circle_speed_y = 0,0
                 circle_x, circle_y = 100, 395
                 tagen_skada = True
@@ -489,6 +541,7 @@ while True:
                     gameover = True  
             if spik_kollision_NH and not tagen_skada:    
                 hearts-=1   
+                sound_effects["die"].play()
                 circle_speed_x, circle_speed_y = 0,0
                 circle_x, circle_y = 100, 395
                 tagen_skada = True 
@@ -496,7 +549,8 @@ while True:
                 if hearts == 0:
                     gameover = True
             if spik_kollision and not tagen_skada:    
-                hearts-=1   
+                hearts-=1 
+                sound_effects["die"].play()
                 circle_speed_x, circle_speed_y = 0,0
                 circle_x, circle_y = 100, 395
                 tagen_skada = True 
@@ -505,6 +559,7 @@ while True:
                     gameover = True     
             if spik_kollision_grop and not tagen_skada: 
                 hearts-=1
+                sound_effects["die"].play()
                 circle_speed_x, circle_speed_y = 0,0
                 circle_x, circle_y = 100, 395
                 tagen_skada = True
@@ -513,6 +568,7 @@ while True:
                     gameover = True
             if fiende2_kollision and not tagen_skada:
                 hearts -= 1
+                sound_effects["die"].play()
                 circle_speed_x, circle_speed_y = 0,0
                 circle_x, circle_y = 100, 395
                 tagen_skada = True
@@ -537,7 +593,7 @@ while True:
         screen.blit(pipe_image_rotated,(cube_x,cube_y))
 
     #Level 3 starter
-    if level == 3 and not boss_exist:
+    if level == 3 and level_start:
 
         background_image = pygame.image.load("boss_background.JPG")
         background_image = pygame.transform.scale(background_image, (800, 600))
@@ -610,6 +666,7 @@ while True:
     #Level 4
     if level == 4:
         boss_reset = False
+        
         #Platformar
         obje1 = pygame.Rect(125,470,100,20)   #Första platform vänster
         obje2 = pygame.Rect(350,100,20,400)   #Mitten vägg  
@@ -620,12 +677,18 @@ while True:
         obstacles =[obje1,obje2,obje3,obje4,obje5,obje6]
         obstacle_painter.render(obstacles)
 
+        if not boss_talk2:
+            sound_effects["boss_take_dmg"].play()
+            boss_talk2 = True
+        
+        
         spawn_boss(screen), boss_movment(screen, level,boss_exist), boss_attack(screen,circle_x,circle_y,circle_radius)
         boss_collision = boss_collaterate(circle_x, circle_y)
         boss_attack_collision = boss_attack(screen,circle_x,circle_y,circle_radius)
         if boss_collision or boss_attack_collision and not tagen_skada:
             tagen_skada = True
             gameover = True
+        
         screen.blit(proceed_button,(750,270))
 
     #Level 5
@@ -650,6 +713,10 @@ while True:
         obstacles=[objek1,objek2,objek3,objek4,objek5,objek6,objek7,objek8,objek9,objek10,objek11,objek12,objek13,objek14]
         obstacle_painter.render(obstacles)
 
+        if not boss_talk3:
+            sound_effects["boss_take_dmg"].play()
+            boss_talk3 = True
+        
         spawn_boss(screen), boss_movment(screen, level,boss_exist), boss_attack(screen,circle_x,circle_y,circle_radius)
         boss_collision = boss_collaterate(circle_x, circle_y)
         boss_attack_collision = boss_attack(screen,circle_x,circle_y,circle_radius)
@@ -668,16 +735,10 @@ while True:
         screen.blit(mario_groundpound,(circle_x-(circle_radius +28),circle_y-(circle_radius +5))) 
     elif movment_right and not on_ground: #Om spelaren hoppar till höger
         screen.blit(mario_jumping_right,(circle_x-(circle_radius -2),circle_y-(circle_radius +3)))
-        if not jumping:
-            sound_effects["jump"].stop()
-            sound_effects["jump"].play()
-            jumping = True
+        
     elif movment_left and not on_ground: #Om spelaren hopper til vänster
         screen.blit(mario_jumping_left,(circle_x-(circle_radius -2),circle_y-(circle_radius +3)))
-        if not jumping:
-            sound_effects["jump"].stop()
-            sound_effects["jump"].play()
-            jumping = True
+        
     elif not on_ground: #Om spelare bara är i luften
        screen.blit(mario_jumping_right,(circle_x-(circle_radius -2),circle_y-(circle_radius +3)))
     elif movment_right and on_ground:  #Om spelaren springer till höger 
